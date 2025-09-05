@@ -1,0 +1,5 @@
+/.env
+/.idea
+/demo/.mem0/
+/demo/.memdb/
+/memory/__pycache__
