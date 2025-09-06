@@ -1,0 +1,28 @@
+conv_id,scenario,difficulty,noise_tags,system,top_k,pred,gold,EM,P@k,R@k,MRR,UpdateAcc,ExtractQ,LatencyMS
+SIMPLE_EASY_42_000,simple,easy,,keyword,5,that,indie folk,0.0,0.3333333333333333,1.0,0.5,,1.0,0.40962300045066513
+SIMPLE_MODERATE_42_000,simple,moderate,"typos,coreference,chit-chat",keyword,5,what,building elaborate miniature train sets,0.0,0.0,0.0,0.0,,0.0,0.2172780004912056
+SIMPLE_COMPLEX_42_000,simple,complex,"emoji,multilingual,coreference,cross_session,typos",keyword,5,not,atmospheric post-rock,0.0,0.2,1.0,0.5,,1.0,0.5354770000849385
+UPDATE_EASY_42_000,update,easy,,keyword,5,what's,jazz,0.0,0.5,1.0,0.5,0.0,1.0,0.2635829987411853
+UPDATE_MODERATE_42_000,update,moderate,"filler,coreference,paraphrase",keyword,5,absolutely.,vietnamese cuisine,0.0,0.25,0.5,0.25,0.0,0.0,0.44524099939735606
+UPDATE_COMPLEX_42_000,update,complex,"emoji,multilingual,coreference,cross_session,filler",keyword,5,just,brew haven,0.0,0.4,1.0,0.3333333333333333,0.0,1.0,0.5022330005886033
+MULTIHOP_EASY_42_000,multihop,easy,,keyword,5,"so,","boston, massachusetts",0.0,0.0,0.0,0.0,,0.0,0.3811269998550415
+MULTIHOP_MODERATE_42_000,multihop,moderate,"typos,coreference,chit-chat",keyword,5,"yes,",nova terra,0.0,0.4,0.6666666666666666,0.5,,1.0,0.5105439995531924
+MULTIHOP_COMPLEX_42_000,multihop,complex,"emoji,multilingual,coreference,cross_session,chatter",keyword,5,given,stockholm,0.0,0.2,0.5,0.2,,1.0,0.5283530008455273
+SIMPLE_EASY_42_000,simple,easy,,vector,5,that,indie folk,0.0,0.25,1.0,0.5,,1.0,2579.319297001348
+SIMPLE_MODERATE_42_000,simple,moderate,"typos,coreference,chit-chat",vector,5,what,building elaborate miniature train sets,0.0,0.0,0.0,0.0,,0.0,2477.446560002136
+SIMPLE_COMPLEX_42_000,simple,complex,"emoji,multilingual,coreference,cross_session,typos",vector,5,not,atmospheric post-rock,0.0,0.2,1.0,0.25,,1.0,2171.34458199871
+UPDATE_EASY_42_000,update,easy,,vector,5,what's,jazz,0.0,0.2,1.0,0.3333333333333333,0.0,1.0,2092.9915249980695
+UPDATE_MODERATE_42_000,update,moderate,"filler,coreference,paraphrase",vector,5,absolutely.,vietnamese cuisine,0.0,0.2,0.5,0.25,0.0,0.0,1922.3297659991658
+UPDATE_COMPLEX_42_000,update,complex,"emoji,multilingual,coreference,cross_session,filler",vector,5,just,brew haven,0.0,0.2,0.5,0.25,0.0,1.0,2017.056673001207
+MULTIHOP_EASY_42_000,multihop,easy,,vector,5,"so,","boston, massachusetts",0.0,0.0,0.0,0.0,,0.0,2240.3467830008594
+MULTIHOP_MODERATE_42_000,multihop,moderate,"typos,coreference,chit-chat",vector,5,"yes,",nova terra,0.0,0.2,0.3333333333333333,0.5,,1.0,2005.94079000075
+MULTIHOP_COMPLEX_42_000,multihop,complex,"emoji,multilingual,coreference,cross_session,chatter",vector,5,given,stockholm,0.0,0.0,0.0,0.0,,1.0,2063.053685000341
+SIMPLE_EASY_42_000,simple,easy,,graph,5,what's,indie folk,0.0,0.2,1.0,0.25,,1.0,2078.2214159989962
+SIMPLE_MODERATE_42_000,simple,moderate,"typos,coreference,chit-chat",graph,5,what,building elaborate miniature train sets,0.0,0.0,0.0,0.0,,0.0,2483.674349998182
+SIMPLE_COMPLEX_42_000,simple,complex,"emoji,multilingual,coreference,cross_session,typos",graph,5,not,atmospheric post-rock,0.0,0.0,0.0,0.0,,1.0,2014.5028940023622
+UPDATE_EASY_42_000,update,easy,,graph,5,what's,jazz,0.0,0.2,1.0,0.3333333333333333,0.0,1.0,2176.843627999915
+UPDATE_MODERATE_42_000,update,moderate,"filler,coreference,paraphrase",graph,5,absolutely.,vietnamese cuisine,0.0,0.2,0.5,0.25,0.0,0.0,1976.3271499978146
+UPDATE_COMPLEX_42_000,update,complex,"emoji,multilingual,coreference,cross_session,filler",graph,5,just,brew haven,0.0,0.2,0.5,0.25,0.0,1.0,2245.102857999882
+MULTIHOP_EASY_42_000,multihop,easy,,graph,5,"so,","boston, massachusetts",0.0,0.0,0.0,0.0,,0.0,2162.1988999977475
+MULTIHOP_MODERATE_42_000,multihop,moderate,"typos,coreference,chit-chat",graph,5,"yes,",nova terra,0.0,0.2,0.3333333333333333,0.5,,1.0,2112.6167319998785
+MULTIHOP_COMPLEX_42_000,multihop,complex,"emoji,multilingual,coreference,cross_session,chatter",graph,5,given,stockholm,0.0,0.0,0.0,0.0,,1.0,2289.9339770010556

@@ -1,0 +1,630 @@
+{
+  "conversation_id": "SIMPLE_EASY_42_000",
+  "scenario": "simple",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hi, I'm really into music. My favorite genre is indie folk."
+    },
+    {
+      "role": "assistant",
+      "content": "That's interesting! Indie folk often has a very unique sound. Do you have any favorite artists?"
+    },
+    {
+      "role": "user",
+      "content": "Yes, I really like Fleet Foxes and Bon Iver. Their harmonies are incredible."
+    },
+    {
+      "role": "assistant",
+      "content": "Both excellent choices. Their music definitely evokes a certain atmosphere."
+    },
+    {
+      "role": "user",
+      "content": "Agreed. Speaking of music, what's a good way to discover new artists in that genre?"
+    },
+    {
+      "role": "assistant",
+      "content": "There are several ways! You could try curated playlists on streaming services, explore music blogs, or even check out live local performances."
+    },
+    {
+      "role": "user",
+      "content": "That sounds like a good plan. By the way, what did I say my favorite music genre was?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what did i say my favorite music genre was?",
+      "expected_answer": "indie folk",
+      "relevant_texts": [
+        "my favorite genre is indie folk."
+      ],
+      "subject_hint": "user's favorite music genre"
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_MODERATE_42_000",
+  "scenario": "simple",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "typos",
+    "coreference",
+    "chit-chat"
+  ],
+  "turns": [
+    {
+      "role": "assistant",
+      "content": "That sounds like a fascinating and unique hobby, Elara! Do you focus on any particular era or type of train, or just whatever catches your eye?"
+    },
+    {
+      "role": "user",
+      "content": "Not really, just whatever catches my eye. Mostly vintage steam engines, though. It's really quite relaxing and a nice escape."
+    },
+    {
+      "role": "assistant",
+      "content": "I can imagine. There's something very satisfying about detailed craftsmanship and seeing a project come to life."
+    },
+    {
+      "role": "user",
+      "content": "Speaking of relaxing, I'm thinking of starting to learn calligraphy too. Just for fun, you know."
+    },
+    {
+      "role": "assistant",
+      "content": "Calligraphy is a beautiful art form. Are you thinking of a specific style, like Copperplate or Spencerian, or more modern lettering?"
+    },
+    {
+      "role": "user",
+      "content": "Hmm, not sure yet. Just saw some cool stuff online. I'll probaly get a starter kit next week and see how it goes."
+    },
+    {
+      "role": "assistant",
+      "content": "That's a great way to begin. There are many excellent resources online for beginners, from tutorials to practice sheets."
+    },
+    {
+      "role": "user",
+      "content": "Oh, by the way, I had a really good coffee this morning. Best espresso I've had in ages from that new place downtown."
+    },
+    {
+      "role": "assistant",
+      "content": "Nice! A good coffee can really set the tone for the day. Glad you enjoyed it."
+    },
+    {
+      "role": "user",
+      "content": "Definitely. Anyway, I was just wondering, you know, about that thing I mentioned earlier..."
+    },
+    {
+      "role": "assistant",
+      "content": "Which thing were you referring to?"
+    },
+    {
+      "role": "user",
+      "content": "What was that hobby I said I did on weekends?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "What was that hobby I said I did on weekends?",
+      "expected_answer": "building elaborate miniature train sets",
+      "relevant_texts": [
+        "i spend my weekends building elaborate miniature train sets."
+      ],
+      "subject_hint": "user"
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_COMPLEX_42_000",
+  "scenario": "simple",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emoji",
+    "multilingual",
+    "coreference",
+    "cross_session",
+    "typos"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey! Just chilling, listening to some tunes. Btw, my absolute favorite type of music to unwind with is atmospheric post-rock. It's just... sublime. ✨"
+    },
+    {
+      "role": "assistant",
+      "content": "That sounds intriguing! Atmospheric post-rock, I haven't explored that much. Do you have any specific bands or albums you'd recommend for a beginner?"
+    },
+    {
+      "role": "user",
+      "content": "Oh, definitely! 'Explosions in the Sky' is a classic. Or 'Sigur Rós' for something more ethereal. Their soundscapes are just mind-blowing. 🤯"
+    },
+    {
+      "role": "assistant",
+      "content": "Great suggestions, thank you! I'll add them to my listen list. Speaking of lists, did you manage to finish that report for work yesterday?"
+    },
+    {
+      "role": "user",
+      "content": "Ugh, the report. Almost, I got stuck on the data visualization part. Too many options! 😅 It's always the last 10% that takes 90% of the effort, right?"
+    },
+    {
+      "role": "assistant",
+      "content": "Absolutely, that's often the case. Sometimes a fresh perspective helps. Perhaps a walk or a short break could spark some inspiration for those visuals?"
+    },
+    {
+      "role": "user",
+      "content": "Good idea! I went for a walk earlier, actually. Saw this super cute corgi. Made my day. 😊 Anyway, I'll tackle the report again after dinner. Gotta eat something first! 🍕"
+    },
+    {
+      "role": "assistant",
+      "content": "A cute corgi sighting is definitely a mood booster! What are you thinking of having for dinner?"
+    },
+    {
+      "role": "user",
+      "content": "Hmm, not sure yet. Maybe some pasta? Or perhaps just a quick sandwich. I'm feeling a bit lazy tonight. It's been a long day, you know? C'est la vie! 😴"
+    },
+    {
+      "role": "assistant",
+      "content": "Pasta sounds like a good comfort food, especially after a long day. Take it easy!"
+    },
+    {
+      "role": "user",
+      "content": "(end of session)/(new session)"
+    },
+    {
+      "role": "user",
+      "content": "Morning! ☕️ Just checking in. Got the report done eventually! Phew. Feeling productive now. What's on your agenda today?"
+    },
+    {
+      "role": "assistant",
+      "content": "Good morning! That's fantastic news about the report! My agenda is quite full today, assisting various users with their inquiries and tasks. How's your day shaping up so far?"
+    },
+    {
+      "role": "user",
+      "content": "Pretty good! Just sorting through emails. Thinking about planning a weekend trip. Maybe a quiet cabin upstate. Need a proper digital detox. 🌲"
+    },
+    {
+      "role": "assistant",
+      "content": "A digital detox sounds wonderful and much-needed. A quiet cabin would be perfect for that. Have you picked a specific area yet?"
+    },
+    {
+      "role": "user",
+      "content": "Not yet, still browsing. Oh, by the way, I was just curious... earlier you mentioned my perfurred music type, what was it again? I'm drawing a blank! 🎶"
+    }
+  ],
+  "eval": [
+    {
+      "question": "earlier you mentioned my perfurred music type, what was it again? I'm drawing a blank! 🎶",
+      "expected_answer": "atmospheric post-rock",
+      "relevant_texts": [
+        "my absolute favorite type of music to unwind with is atmospheric post-rock"
+      ],
+      "subject_hint": "user"
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_EASY_42_000",
+  "scenario": "update",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "assistant",
+      "content": "Classical music is very rich. Do you have a favorite composer?"
+    },
+    {
+      "role": "user",
+      "content": "Not really, but I've actually gotten into jazz lately. So my primary genre is now jazz."
+    },
+    {
+      "role": "assistant",
+      "content": "Jazz is a fantastic genre with a lot of variety."
+    },
+    {
+      "role": "user",
+      "content": "What's my main music genre now?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "What's my main music genre now?",
+      "expected_answer": "jazz",
+      "relevant_texts": [
+        "my primary genre is now jazz",
+        "i've actually gotten into jazz lately"
+      ],
+      "subject_hint": "user"
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_MODERATE_42_000",
+  "scenario": "update",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "filler",
+    "coreference",
+    "paraphrase"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there! I was just thinking about dinner plans, and it got me thinking about my favorite cuisines. I'd say my top pick has always been Thai food, especially the really spicy curries.",
+      "turn_id": 0
+    },
+    {
+      "role": "assistant",
+      "content": "Thai curries are amazing! Do you prefer green, red, or yellow curry, or something else entirely?",
+      "turn_id": 1
+    },
+    {
+      "role": "user",
+      "content": "Oh, definitely green curry. And there's a place called 'Bangkok Bites' near my office that makes the best one. It's my usual Friday night treat.",
+      "turn_id": 2
+    },
+    {
+      "role": "assistant",
+      "content": "Bangkok Bites, sounds like a great Friday tradition! It's good to have a reliable spot for your favorite.",
+      "turn_id": 3
+    },
+    {
+      "role": "user",
+      "content": "Totally. Anyway, I had a thought. My culinary preferences have actually shifted a bit recently. I've found myself completely captivated by Vietnamese food.",
+      "turn_id": 4
+    },
+    {
+      "role": "assistant",
+      "content": "Vietnamese cuisine is incredibly diverse and flavorful! What aspects of it have you found most appealing?",
+      "turn_id": 5
+    },
+    {
+      "role": "user",
+      "content": "Well, the fresh herbs, for one. And the pho, oh my goodness, the pho. I could eat it every day. I've also really started to appreciate banh mi sandwiches.",
+      "turn_id": 6
+    },
+    {
+      "role": "assistant",
+      "content": "Pho and banh mi are excellent choices. They really showcase the fresh and vibrant flavors of Vietnamese cooking.",
+      "turn_id": 7
+    },
+    {
+      "role": "user",
+      "content": "Yeah, they really do. I still enjoy Thai, don't get me wrong, but Vietnamese has definitely taken the lead in my book now.",
+      "turn_id": 8
+    },
+    {
+      "role": "assistant",
+      "content": "It's interesting how our tastes can evolve over time! It's always fun to explore new culinary horizons.",
+      "turn_id": 9
+    },
+    {
+      "role": "user",
+      "content": "Absolutely. So, based on what I've told you, what's my current favorite type of food?",
+      "turn_id": 10
+    }
+  ],
+  "eval": [
+    {
+      "question": "what's my current favorite type of food?",
+      "expected_answer": "vietnamese cuisine",
+      "relevant_texts": [
+        "i've found myself completely captivated by vietnamese food.",
+        "vietnamese has definitely taken the lead in my book now."
+      ],
+      "subject_hint": "user"
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_COMPLEX_42_000",
+  "scenario": "update",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emoji",
+    "multilingual",
+    "coreference",
+    "cross_session",
+    "filler"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there! Just enjoying a coffee. My absolute favorite place to grab a latte is The Daily Grind. Their almond milk lattes are just *chef's kiss*."
+    },
+    {
+      "role": "assistant",
+      "content": "Sounds delightful! I've heard good things about The Daily Grind. Are you usually a coffee shop regular, or is it more of a weekend treat?"
+    },
+    {
+      "role": "user",
+      "content": "Oh, definitely a regular! I'm practically there every other day after my pottery class. Gotta get that caffeine kick to sculpt, haha. 😊"
+    },
+    {
+      "role": "assistant",
+      "content": "Pottery! That's fascinating. Do you make functional pieces or more artistic sculptures?"
+    },
+    {
+      "role": "user",
+      "content": "A bit of both, actually. Mostly bowls and mugs. Speaking of mugs, I need another one for my collection. The Daily Grind has some cool merch."
+    },
+    {
+      "role": "assistant",
+      "content": "They often do! It's great when a place has a good vibe and good products. What's on your agenda for the rest of the week?"
+    },
+    {
+      "role": "user",
+      "content": "Just work, work, work! Maybe a hike this weekend if the weather holds up. Gotta balance all that sedentary pottery with some movement. 🚶‍♀️"
+    },
+    {
+      "role": "assistant",
+      "content": "That sounds like a good plan. Fresh air is always refreshing. Enjoy your hike if you manage to go!"
+    },
+    {
+      "role": "user",
+      "content": "Thanks! You too. (end of session)/(new session)"
+    },
+    {
+      "role": "assistant",
+      "content": "Welcome back! Hope your week's been good. Anything new or exciting?"
+    },
+    {
+      "role": "user",
+      "content": "Hey! Yeah, things are okay. So, a funny thing happened. You know how I used to rave about The Daily Grind? Well, they've gotten SO crowded lately, it's unbearable. My new go-to, the place that's stolen my heart, is 'Brew Haven'. Their cold brew is next-level, honestly. 💯"
+    },
+    {
+      "role": "assistant",
+      "content": "Oh, a new champion has emerged! Brew Haven, you say? What makes their cold brew so special?"
+    },
+    {
+      "role": "user",
+      "content": "It's just smoother, less acidic, and they have this amazing hazelnut creamer. Plus, the atmosphere is super chill. No fighting for a seat, you know? C'est la vie for the old spot. 😂"
+    },
+    {
+      "role": "assistant",
+      "content": "That's a definite plus – a calm atmosphere makes a big difference. It's interesting how preferences can shift over time."
+    },
+    {
+      "role": "user",
+      "content": "Totally. Gotta adapt! So yeah, Brew Haven it is for me now. Best coffee in town, hands down. ☕"
+    },
+    {
+      "role": "assistant",
+      "content": "Good to know you've found a new favorite! Enjoy your coffee wherever you go."
+    },
+    {
+      "role": "user",
+      "content": "Just out of curiosity, what's my favorite coffee shop now?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "What's my favorite coffee shop now?",
+      "expected_answer": "brew haven",
+      "relevant_texts": [
+        "my new go-to, the place that's stolen my heart, is 'brew haven'.",
+        "so yeah, brew haven it is for me now."
+      ],
+      "subject_hint": "user's favorite coffee shop"
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_EASY_42_000",
+  "scenario": "multihop",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Can you tell me about Liam?"
+    },
+    {
+      "role": "assistant",
+      "content": "Liam is a talented chef."
+    },
+    {
+      "role": "user",
+      "content": "Where does he work?"
+    },
+    {
+      "role": "assistant",
+      "content": "He's the head chef at 'The Gilded Spoon' restaurant."
+    },
+    {
+      "role": "user",
+      "content": "What city is 'The Gilded Spoon' located in?"
+    },
+    {
+      "role": "assistant",
+      "content": "'The Gilded Spoon' is in Boston, Massachusetts."
+    },
+    {
+      "role": "user",
+      "content": "So, what city does Liam's workplace call home?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "So, what city does Liam's workplace call home?",
+      "expected_answer": "boston, massachusetts",
+      "relevant_texts": [
+        "he's the head chef at 'the gilded spoon' restaurant.",
+        "'the gilded spoon' is in boston, massachusetts."
+      ],
+      "subject_hint": "Liam"
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_MODERATE_42_000",
+  "scenario": "multihop",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "typos",
+    "coreference",
+    "chit-chat"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hi, I was wondering, do you know Elara Vance? She's the lead for the Research & Development team."
+    },
+    {
+      "role": "assistant",
+      "content": "I don't have personal knowledge, but I can process information about Elara Vance, the R&D lead."
+    },
+    {
+      "role": "user",
+      "content": "Ok, good. And that team, the R&D one she heads, it's part of StellarForge Innovations."
+    },
+    {
+      "role": "assistant",
+      "content": "So, Elara Vance leads an R&D team within StellarForge Innovations. Understood."
+    },
+    {
+      "role": "user",
+      "content": "Exactly. I hear they're doing some really groundbreaking stuff there. What kind of projects are they into, do you know?"
+    },
+    {
+      "role": "assistant",
+      "content": "I don't have details on their specific projects, but StellarForge Innovations is known for its advanced technological research."
+    },
+    {
+      "role": "user",
+      "content": "Right, right. And just for my records, where is StellarForge Innovations actually headquartered? Like, which city?"
+    },
+    {
+      "role": "assistant",
+      "content": "StellarForge Innovations is headquartered in Nova Terra."
+    },
+    {
+      "role": "user",
+      "content": "Cool, Nova Terra, got it. Hey, one quick thing, my cat just knocked over a plant, so pardon the interuption."
+    },
+    {
+      "role": "assistant",
+      "content": "No worries at all. Is there anything else I can assist you with regarding StellarForge or Elara?"
+    },
+    {
+      "role": "user",
+      "content": "Yes, actually. Can you tell me what city Elara Vance's employer is located in?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "Can you tell me what city Elara Vance's employer is located in?",
+      "expected_answer": "nova terra",
+      "relevant_texts": [
+        "elara vance? she's the lead for the research & development team.",
+        "that team, the r&d one she heads, it's part of stellarforge innovations.",
+        "stellarforge innovations is headquartered in nova terra."
+      ],
+      "subject_hint": "elara vance"
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_COMPLEX_42_000",
+  "scenario": "multihop",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emoji",
+    "multilingual",
+    "coreference",
+    "cross_session",
+    "chatter"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there, I was just thinking about my old colleague, Liam Chen. He's quite a brilliant data scientist, you know? 🤓"
+    },
+    {
+      "role": "assistant",
+      "content": "Oh, that's interesting! Data science is a fascinating field. Is he still with the same company?"
+    },
+    {
+      "role": "user",
+      "content": "Nah, he moved. He's at Quantum Innovations now. They're doing some really cutting-edge stuff with AI and machine learning. Pretty cool! 👍"
+    },
+    {
+      "role": "assistant",
+      "content": "Quantum Innovations, got it. Sounds like an exciting place to work."
+    },
+    {
+      "role": "user",
+      "content": "Yeah, I guess so. He's always super busy. Do you know if they have a big presence in the US? I forgot."
+    },
+    {
+      "role": "assistant",
+      "content": "I don't have that detail on hand, but I can tell you more about Quantum Innovations if you'd like."
+    },
+    {
+      "role": "user",
+      "content": "Not now, maybe later. I was trying to remember where their main office is. I know it's in Europe somewhere, but the city escapes me. 😅"
+    },
+    {
+      "role": "assistant",
+      "content": "No worries, take your time. Europe is a big place!"
+    },
+    {
+      "role": "user",
+      "content": "Ah! It's Stockholm. Definitely Stockholm. Jag älskar Sverige! 🇸🇪 Such a beautiful place."
+    },
+    {
+      "role": "assistant",
+      "content": "Stockholm, excellent! I've heard wonderful things about it."
+    },
+    {
+      "role": "user",
+      "content": "It truly is! Anyway, completely unrelated, did you catch that new space documentary on Netflix? Blew my mind! 🚀"
+    },
+    {
+      "role": "assistant",
+      "content": "Not yet, but I'll add it to my watch list! Sounds intriguing."
+    },
+    {
+      "role": "user",
+      "content": "You totally should. Ok, I'm heading out for a quick coffee break. Back in a bit! 👋"
+    },
+    {
+      "role": "assistant",
+      "content": "Enjoy your coffee! See you soon."
+    },
+    {
+      "role": "user",
+      "content": "(end of session)\n(new session)\nHi again! 👋 So glad to be back. The coffee was excellent."
+    },
+    {
+      "role": "assistant",
+      "content": "Welcome back! Glad to hear you enjoyed it."
+    },
+    {
+      "role": "user",
+      "content": "Just circling back to our earlier chat. About Liam Chen, the data scientist."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, what about him?"
+    },
+    {
+      "role": "user",
+      "content": "Given what we discussed, what city is Liam Chen's employer based in? 🤔"
+    },
+    {
+      "role": "assistant",
+      "content": "Liam Chen's employer, Quantum Innovations, is based in Stockholm."
+    }
+  ],
+  "eval": [
+    {
+      "question": "Given what we discussed, what city is Liam Chen's employer based in? 🤔",
+      "expected_answer": "stockholm",
+      "relevant_texts": [
+        "he's at quantum innovations now.",
+        "it's stockholm. definitely stockholm."
+      ],
+      "subject_hint": "liam chen"
+    }
+  ]
+}
