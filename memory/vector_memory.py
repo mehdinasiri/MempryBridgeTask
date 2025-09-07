@@ -1,11 +1,8 @@
 # repo/memory/vector_memory.py
 from __future__ import annotations
-
-import json
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from loguru import logger
 from openai import OpenAI
 
 from .base import MemorySystem
@@ -21,6 +18,48 @@ from utils.vector_adapters import VectorIndex, ChromaIndex, LanceDBIndex
 from utils.custom_embedder import CustomProxyEmbedder
 from utils.config import load_config
 
+import json
+import re
+from typing import Any, List, Optional
+from loguru import logger
+
+_JSON_ARRAY_RE = re.compile(
+    r"(?s)```(?:json)?\s*(\[[\s\S]*?\])\s*```|(\[[\s\S]*\])"
+)
+
+def _safe_load_json_array(s: str) -> Optional[List[Any]]:
+    """
+    Robustly parse a JSON array from LLM output:
+    - Accepts fenced ```json ... ``` or plain text.
+    - Extracts the *first complete* bracketed array [ ... ] and parses it.
+    - Returns None on failure.
+    """
+    if not s:
+        return None
+    s = s.strip()
+
+    # Fast path: try direct parse if it *is* an array and no extra trailing data
+    if s.startswith("[") and s.endswith("]"):
+        try:
+            arr = json.loads(s)
+            return arr if isinstance(arr, list) else None
+        except Exception:
+            pass
+
+    # Try to find a fenced or unfenced JSON array
+    m = _JSON_ARRAY_RE.search(s)
+    if not m:
+        return None
+
+    candidate = m.group(1) or m.group(2) or ""
+    candidate = candidate.strip()
+    # Last chance parse
+    try:
+        arr = json.loads(candidate)
+        return arr if isinstance(arr, list) else None
+    except Exception as e:
+        logger.error(f"[facts_llm] JSON extract failed: {e}")
+        return None
 
 class VectorMemory(MemorySystem):
     def __init__(
@@ -90,30 +129,31 @@ class VectorMemory(MemorySystem):
         # Evidence MUST be provided as source_span: an exact substring from the user message that supports the fact.
         system_prompt = (
             "You are a precise information extraction engine. Read ONE user message and output ONLY a JSON array.\n"
-            "Each array item is an atomic fact (up to 2 reasoning hops), with this schema:\n"
-            "REQUIRED: subject (string), predicate (string), object (string), confidence (0.0-1.0), source_span (string).\n"
-            "OPTIONAL: negated (bool), hypothetical (bool), derived_from (array<string>), id (string), qualifiers (object), slot (string).\n"
+            "Each array item is an atomic fact (allow up to 2 reasoning hops), with this schema:\n"
+            "REQUIRED fields: subject (string), predicate (string), object (string), confidence (0..1), source_span (string).\n"
+            "OPTIONAL fields: negated (bool), hypothetical (bool), derived_from (array<string>), id (string), "
+            "qualifiers (object), slot (string).\n"
             "\n"
             "CONSTRAINTS & NORMALIZATION\n"
-            "1) predicate: snake_case, lowercase, no spaces. Prefer conventional relations (e.g., works_at, lives_in, likes, "
-            "switched_to, manager_of, founded, spouse_of). Map variants internally to a canonical label.\n"
+            "1) predicate: snake_case, lowercase, concise. Use conventional labels: works_at, lives_in, likes, switched_to, "
+            "manager_of, founded, spouse_of, name (not has_name). Map variants internally to a canonical label.\n"
             "2) SUBJECT RESOLUTION: If first-person appears (I/me/my/myself), then:\n"
             "   - If SUBJECT_ALIAS is provided in context, use that literal alias as subject.\n"
             "   - Otherwise use the literal token \"<USER>\" (do not guess names).\n"
-            "   Resolve simple pronouns to prior entities within the same message when clear.\n"
-            "3) MULTI-HOP: Derive short chains only when both hops are explicitly supported. Do not invent missing links.\n"
-            "4) UPDATES & NEGATION: If the message clearly updates a (subject,predicate) with a new object, emit only the current fact. "
-            "   If the message negates a prior state, set negated=true for that item; emit a new state only if stated.\n"
+            "   Resolve simple pronouns within the same message when unambiguous.\n"
+            "3) MULTI-HOP: Emit short chains only when both hops are explicitly supported by the message; do not invent links.\n"
+            "4) UPDATES/NEGATION: If the message clearly updates a (subject,predicate) slot with a new object, emit only the current state. "
+            "   If it negates a prior state, set negated=true; emit a new positive state only if explicitly stated.\n"
             "5) UNCERTAINTY: Mark hypothetical=true for tentative/planned/unsure statements.\n"
-            "6) DEDUP: Deduplicate equivalent items; prefer the most informative form.\n"
-            "7) ENTITIES: Keep entities concise and consistent (e.g., \"OpenAI\", \"Anthropic\", \"San Francisco\"). "
-            "   Do not emit trivial tautologies like {\"subject\":\"Alice\",\"predicate\":\"name\",\"object\":\"Alice\"} unless newly revealed.\n"
+            "6) DEDUP: Remove equivalent items; keep the most informative.\n"
+            "7) ENTITIES: Keep concise canonical strings (e.g., \"OpenAI\", \"Anthropic\", \"San Francisco\"). "
+            "   Avoid trivial tautologies unless they are newly revealed and useful.\n"
             "8) EVIDENCE: source_span MUST be an exact, minimal substring copied verbatim from the user message that best supports the fact "
             "(e.g., \"My name is Alice\", \"I work at Anthropic now\"). No paraphrasing.\n"
-            "9) OUTPUT: Return ONLY a JSON array of objects. No prose or code fences.\n"
+            "9) OUTPUT: Return ONLY a JSON array of objects. No prose, no code fences, no surrounding text.\n"
         )
 
-        # Pass current conversation alias for subject resolution
+        # Provide the current conversation alias for better subject resolution
         subject_alias = self._conv_subject.get(conv_id)
         context_msg = {
             "role": "system",
@@ -136,46 +176,43 @@ class VectorMemory(MemorySystem):
         content = (resp.choices[0].message.content or "").strip()
         logger.debug(f"[facts_llm] raw_json_preview={content[:200]!r} latency_ms={latency_ms:.1f}")
 
-        # Parse JSON
-        try:
-            parsed = json.loads(content)
-        except Exception as e:
-            logger.error(f"[facts_llm] JSON parse failed: {e}; content_preview={content[:200]!r}")
+        # Robust parse (accepts fenced/unfenced JSON arrays and ignores trailing noise)
+        parsed = _safe_load_json_array(content)
+        if parsed is None:
+            logger.error(f"[facts_llm] JSON parse failed; content_preview={content[:200]!r}")
             return []
 
         if not isinstance(parsed, list):
             logger.debug("[facts_llm] Parsed content is not a list; returning empty.")
             return []
 
-        # Build AtomicFacts; tiny guardrails (predicate map + alias rewrite). Evidence comes only from LLM.
         out: List[AtomicFact] = []
         for idx, d in enumerate(parsed):
             try:
-                s = d.get("subject")
-                p = d.get("predicate")
-                o = d.get("object")
+                s = (d.get("subject") or "").strip()
+                p = (d.get("predicate") or "").strip()
+                o = (d.get("object") or "").strip()
                 span = (d.get("source_span") or "").strip()
                 if not (s and p and o and span):
-                    # We strictly require evidence from LLM per user request
                     logger.debug(f"[facts_llm] skipping item without required fields or source_span: {d!r}")
                     continue
 
-                conf = float(d.get("confidence", 0.85))
-                p = self._canon_pred(p)  # tiny fallback if the model drifts
-
-                # Map "<USER>"/pronouns to alias if we have one (fallback)
-                if s and norm_text(s).lower() in {"<user>", "i", "me", "my", "myself", "user"}:
+                # canonicalize predicate and resolve first-person to alias if we have one
+                p = self._canon_pred(p)
+                if s.lower() in {"<user>", "i", "me", "my", "myself", "user"}:
                     alias = self._conv_subject.get(conv_id)
                     if alias:
                         s = alias
 
+                conf = float(d.get("confidence", 0.85))
                 f = make_fact(s, p, o, source=source, confidence=conf)
-                f.meta["evidence"] = span  # evidence from LLM
-
-                logger.info(f"[facts_llm] fact EXTRACTED id={f.fact_id} ({f.subject}|{f.predicate}|{f.object}) conf={f.confidence:.2f}")
+                f.meta["evidence"] = span  # store verbatim evidence from the LLM
                 out.append(f)
 
-                # If name revealed, update alias for this conversation
+                logger.info(
+                    f"[facts_llm] fact EXTRACTED id={f.fact_id} ({f.subject}|{f.predicate}|{f.object}) conf={f.confidence:.2f}")
+
+                # If a name is set, capture it as the conversation alias
                 if f.predicate == "name":
                     alias = f.object.strip()
                     if alias:
