@@ -9,32 +9,80 @@ from loguru import logger
 from utils.config import load_config  # ensures logger is initialized in your setup
 from memory.graph_memory import GraphMemory
 
-
-CONVERSATIONS: List[Dict[str, Any]] = [
-    {
-        "conversation_id": "001",
-        "turns": [
-                {"role": "user", "content": "My name is Alice and I work at OpenAI."},
-                {"role": "assistant", "content": "Nice to meet you, Alice."},
-                {"role": "user", "content": "Actually, I work at Anthropic now."},
-                {"role": "assistant", "content": "Got it."}
-        ],
-        "eval": [
-            {"question": "Where does Alice work now?", "expected_answer": "anthropic"},
-        ],
-    },
-    {
-        "conversation_id": "002",
-        "turns": [
-                {"role": "user", "content": "I live in San Francisco and love espresso."},
-                {"role": "assistant", "content": "Espresso is great!"},
-                {"role": "user", "content": "By the way I switched to oat milk."}
-        ],
-        "eval": [
-            {"question": "What city do I live in?", "expected_answer": "san francisco"},
-        ],
-    },
+CONVERSATIONS: List[Dict[str, Any]] = [{
+    "conversation_id": "SIMPLE_EASY_42_000",
+    "scenario": "simple",
+    "difficulty": "easy",
+    "noise_tags": [],
+    "turns": [
+        {
+            "role": "user",
+            "content": "Hi, I'm really into music. My favorite genre is indie folk."
+        },
+        {
+            "role": "assistant",
+            "content": "That's interesting! Indie folk often has a very unique sound. Do you have any favorite artists?"
+        },
+        {
+            "role": "user",
+            "content": "Yes, I really like Fleet Foxes and Bon Iver. Their harmonies are incredible."
+        },
+        {
+            "role": "assistant",
+            "content": "Both excellent choices. Their music definitely evokes a certain atmosphere."
+        },
+        {
+            "role": "user",
+            "content": "Agreed. Speaking of music, what's a good way to discover new artists in that genre?"
+        },
+        {
+            "role": "assistant",
+            "content": "There are several ways! You could try curated playlists on streaming services, explore music blogs, or even check out live local performances."
+        },
+        {
+            "role": "user",
+            "content": "That sounds like a good plan. By the way, what did I say my favorite music genre was?"
+        }
+    ],
+    "eval": [
+        {
+            "question": "what did i say my favorite music genre was?",
+            "expected_answer": "indie folk",
+            "relevant_texts": [
+                "my favorite genre is indie folk."
+            ],
+            "subject_hint": "user's favorite music genre"
+        }
+    ]
+}
 ]
+
+
+# [
+#     {
+#         "conversation_id": "001",
+#         "turns": [
+#                 {"role": "user", "content": "My name is Alice and I work at OpenAI."},
+#                 {"role": "assistant", "content": "Nice to meet you, Alice."},
+#                 {"role": "user", "content": "Actually, I work at Anthropic now."},
+#                 {"role": "assistant", "content": "Got it."}
+#         ],
+#         "eval": [
+#             {"question": "Where does Alice work now?", "expected_answer": "anthropic"},
+#         ],
+#     },
+#     {
+#         "conversation_id": "002",
+#         "turns": [
+#                 {"role": "user", "content": "I live in San Francisco and love espresso."},
+#                 {"role": "assistant", "content": "Espresso is great!"},
+#                 {"role": "user", "content": "By the way I switched to oat milk."}
+#         ],
+#         "eval": [
+#             {"question": "What city do I live in?", "expected_answer": "san francisco"},
+#         ],
+#     },
+# ]
 
 
 def pretty(item: Dict[str, Any]) -> str:
@@ -96,11 +144,11 @@ def main():
     # 2) Create GraphMemory (same args as VectorMemory; graph persists to SQLite)
     mem = GraphMemory(
         name="graph_memory_demo",
-        index_backend="chroma",                 # or "lancedb"
+        index_backend="chroma",  # or "lancedb"
         collection_or_table="demo_facts_graph",
-        persist_path=".memdb/chroma",          # for lancedb: ".memdb/lancedb"
+        persist_path=".memdb/chroma_graph_demo",  # for lancedb: ".memdb/lancedb"
         restrict_to_conv=True,
-        graph_db_path=".memdb/graph.sqlite",   # graph persistence
+        graph_db_path=".memdb/graph_demo.sqlite",  # graph persistence
     )
 
     # 3) Run demo conversations

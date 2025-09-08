@@ -1,145 +1,352 @@
-# repo/memory/third_party/llamaindex_adapter.py
+# memory/llamaindex_adapter.py
 from __future__ import annotations
 
+import os
 import time
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
+from types import SimpleNamespace
+from typing import Any, Dict, List, Optional, Sequence, Union
 
-from memory.base import MemorySystem, DefaultEvaluationHooks
-from utils.models import make_chunk
+from loguru import logger
+from memory.base import MemorySystem
+
+# ---- Config ----
+from utils.config import load_config
+_cfg = load_config()
+
+# ---- Your custom embedder (vector-only) ----
+try:
+    from utils.custom_embedder import CustomProxyEmbedder
+except Exception as e:
+    raise ImportError("CustomProxyEmbedder not found. Ensure utils/custom_embedder.py exists.") from e
+
+# ---- LlamaIndex & Chroma bindings (import defensively across versions) ----
+try:
+    # Core
+    from llama_index.core import Document
+except Exception as e:
+    raise ImportError(
+        "llama_index is required. `pip install llama-index chromadb`"
+    ) from e
+
+# Settings / ServiceContext (v0.9 vs v0.10+ compatibility)
+_LI_Settings = None
+_LI_ServiceContext = None
+try:
+    from llama_index.core import Settings as _LI_Settings  # v0.10+
+except Exception:
+    try:
+        from llama_index.core import ServiceContext as _LI_ServiceContext  # v0.9
+    except Exception:
+        _LI_ServiceContext = None
+
+# LLM (OpenAI-compatible; supports base_url + key)
+_LI_OpenAI = None
+try:
+    from llama_index.llms.openai import OpenAI as _LI_OpenAI  # v0.10+
+except Exception:
+    try:
+        from llama_index.llms.openai import OpenAI as _LI_OpenAI  # older
+    except Exception:
+        _LI_OpenAI = None
+
+# Embedding base
+try:
+    from llama_index.core.embeddings import BaseEmbedding  # v0.10+
+except Exception:
+    from llama_index.embeddings import BaseEmbedding       # v0.9 fallback
+
+
+# Vector store (Chroma)
+try:
+    import chromadb
+    from llama_index.vector_stores.chroma import ChromaVectorStore
+except Exception as e:
+    raise ImportError(
+        "ChromaVectorStore requires `chromadb`. Install: pip install chromadb llama-index-vector-stores-chroma"
+    ) from e
+
+# Index / Node APIs
+_VectorStoreIndex = None
+try:
+    from llama_index.core import VectorStoreIndex as _VectorStoreIndex
+except Exception:
+    try:
+        from llama_index import VectorStoreIndex as _VectorStoreIndex  # very old
+    except Exception:
+        _VectorStoreIndex = None
+
+# Storage context (for injecting vector store)
+try:
+    from llama_index.core import StorageContext as _StorageContext
+except Exception:
+    try:
+        from llama_index import StorageContext as _StorageContext
+    except Exception:
+        _StorageContext = None
+
+
+def _chroma_path(default_name: str = "llamaindex_chroma_store") -> str:
+    path = os.getenv("LLAMAINDEX_CHROMA_PATH", f".memdb/{default_name}")
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+@dataclass
+class _RetrievalItem:
+    type: str
+    id: Optional[str]
+    subject: Optional[str]
+    predicate: Optional[str]
+    object: Optional[str]
+    text: str
+    score: float
+    source: Optional[str]
+    created_at: Optional[str]
+
+class _LlamaIndexEmbedderAdapter(BaseEmbedding):
+    def __init__(self, proxy: CustomProxyEmbedder):
+        super().__init__()
+        self._proxy = proxy
+        # keep for optional internal logging if you want
+        self._embedding_dims = int(os.getenv("MB_EMBED_DIMS", "3072"))
+
+    # required sync hooks
+    def _get_query_embedding(self, query: str) -> List[float]:
+        return self._proxy.embed(query)
+
+    def _get_text_embedding(self, text: str) -> List[float]:
+        return self._proxy.embed(text)
+
+    def _get_text_embeddings(self, texts: Sequence[str]) -> List[List[float]]:
+        return [self._proxy.embed(t) for t in texts]
+
+    # optional async hooks (safe fallbacks)
+    async def _aget_query_embedding(self, query: str) -> List[float]:
+        return self._get_query_embedding(query)
+
+    async def _aget_text_embedding(self, text: str) -> List[float]:
+        return self._get_text_embedding(text)
+
+    async def _aget_text_embeddings(self, texts: Sequence[str]) -> List[List[float]]:
+        return self._get_text_embeddings(texts)
+
 
 
 class LlamaIndexMemory(MemorySystem):
     """
-    Minimal adapter for LlamaIndex vector retrieval per conversation.
+    MemorySystem implemented on top of LlamaIndex + Chroma.
 
-    Install:
-        pip install llama-index-core
-    (add extras as needed, e.g., embeddings or vector-store integrations)
-
-    Behavior:
-      - Index ONLY user turns as Documents (per-conversation index).
-      - Build/maintain a VectorStoreIndex per conversation.
-      - Retrieval uses the index retriever; results normalized to 'chunk' items.
+    - Stores only USER turns (like your other memories)
+    - Uses CustomProxyEmbedder via an adapter class
+    - Chroma persists embeddings at a local path
+    - Retrieval returns normalized items similar to Vector/Graph/Mem0 adapters
+    - Logs added turns and retrieval results (facts vs memories)
     """
+
     def __init__(
         self,
         name: str = "llamaindex_memory",
         *,
-        hooks: Optional[DefaultEvaluationHooks] = None,
-        embed_model: Optional[Any] = None,  # optional LlamaIndex embed model instance
+        collection: Optional[str] = None,
+        chat_model: Optional[str] = None,
+        embed_model: Optional[str] = None,
+        base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+        restrict_to_conv: bool = True,
+        chroma_path: Optional[str] = None,
     ):
-        super().__init__(name=name, hooks=hooks)
-        try:
-            # v0.10+ imports
-            from llama_index.core import Document, VectorStoreIndex  # noqa: F401
-            self._Document = Document
-            self._VectorStoreIndex = VectorStoreIndex
-        except Exception as e:
-            raise ImportError(
-                "LlamaIndex not installed. Try: pip install llama-index-core"
-            ) from e
+        super().__init__(name=name)
+        self.restrict_to_conv = bool(restrict_to_conv)
 
-        self._embed_model = embed_model
-        self._docs_by_conv: Dict[str, List[Any]] = {}
-        self._index_by_conv: Dict[str, Any] = {}
+        # Resolve config (kwargs override env/config)
+        self._collection = collection or _cfg.get("MB_COLLECTION", "mem0_default")
+        self._chat_model = chat_model or _cfg.get("MB_CHAT_MODEL", "gemini-flash")
+        self._embed_model = embed_model or _cfg.get("MB_EMBED_MODEL", "gemini-embedding")
+        self._base_url = (base_url or _cfg.get("OPENAI_BASE_URL", "")).rstrip("/")
+        self._api_key = api_key or _cfg.get("OPENAI_API_KEY", "")
 
-    # ---------------- internal ----------------
+        # Ensure OpenAI-compatible clients see a key (many clients still read env)
+        if self._api_key and not os.getenv("OPENAI_API_KEY"):
+            os.environ["OPENAI_API_KEY"] = self._api_key
 
-    def _ensure_index(self, conversation_id: str) -> None:
-        if conversation_id in self._index_by_conv:
-            return
-        docs = self._docs_by_conv.get(conversation_id, [])
-        if not docs:
-            docs = [self._Document(text="(init)")]
-        if self._embed_model is not None:
-            self._index_by_conv[conversation_id] = self._VectorStoreIndex.from_documents(
-                docs, embed_model=self._embed_model
+        self._persist_path = chroma_path or _chroma_path()
+
+        # --- Vector store (Chroma) ---
+        self._chroma_client = chromadb.PersistentClient(path=self._persist_path)
+        self._chroma_collection = self._chroma_client.get_or_create_collection(self._collection)
+        self._vector_store = ChromaVectorStore(chroma_collection=self._chroma_collection)
+
+        # --- Embeddings via your proxy embedder ---
+        proxy = CustomProxyEmbedder(
+            base_url=self._base_url,
+            api_key=self._api_key,
+            model=self._embed_model,
+        )
+        self._embedder = _LlamaIndexEmbedderAdapter(proxy)
+
+        # --- LLM (optional) ---
+        llm = None
+        if _LI_OpenAI is not None:
+            llm = _LI_OpenAI(model=self._chat_model, api_key=self._api_key or None, base_url=self._base_url or None)
+
+        # --- Settings/ServiceContext wiring ---
+        if _LI_Settings is not None:
+            # v0.10+: global settings require BaseEmbedding instance (we have it now)
+            _LI_Settings.embed_model = self._embedder
+            if llm is not None:
+                _LI_Settings.llm = llm
+        elif _LI_ServiceContext is not None:
+            # v0.9: build a ServiceContext
+            from llama_index.core import ServiceContext
+            self._service_context = ServiceContext.from_defaults(embed_model=self._embedder, llm=llm)
+        else:
+            self._service_context = None
+
+        # --- Index on top of Chroma vector store ---
+        if _StorageContext is None or _VectorStoreIndex is None:
+            raise ImportError("Your LlamaIndex version is too old; please upgrade to >=0.9.")
+
+        storage_ctx = _StorageContext.from_defaults(vector_store=self._vector_store)
+        if _LI_ServiceContext is not None:
+            self._index = _VectorStoreIndex.from_documents(
+                documents=[], storage_context=storage_ctx, service_context=self._service_context
             )
         else:
-            self._index_by_conv[conversation_id] = self._VectorStoreIndex.from_documents(docs)
+            # v0.10 uses Settings; service_context arg is deprecated
+            self._index = _VectorStoreIndex.from_documents(documents=[], storage_context=storage_ctx)
 
-    # ---------------- ingestion ----------------
+        logger.info(
+            f"LlamaIndexMemory[{self.name}] ready "
+            f"(collection={self._collection}, chat_model={self._chat_model}, "
+            f"embed_model={self._embed_model}, path={self._persist_path})"
+        )
 
-    def add_turn(
-        self,
-        conversation_id: str,
-        turn_id: int,
-        role: str,
-        content: str,
-        meta: Optional[Dict[str, Any]] = None,
-    ) -> None:
-        role = (role or "").strip().lower()
-        content = (content or "").strip()
-        if not content:
+    # ---------------------------------------------------
+    # Ingestion
+    # ---------------------------------------------------
+    def add_turn(self, conv_id: str, turn_id: int, role: str, text: Any) -> None:
+        source = f"{conv_id}:turn_{turn_id}"
+        if not isinstance(text, str) or not text.strip():
+            return
+        if role.lower() != "user":
             return
 
-        # Index ONLY user facts to mirror your baselines
-        if role != "user":
-            if self.hooks:
-                self.hooks.after_add(conversation_id, turn_id, {"indexed": False, "reason": "not_user"})
-            return
-
-        if self.hooks:
-            self.hooks.before_add(conversation_id, turn_id, {"role": role, "text_preview": content[:160]})
-
+        # Create a document per user message; include key metadata
+        doc = Document(text=text, metadata={"source": source, "role": "user", "conv_id": conv_id})
         try:
-            Doc = self._Document
-            doc = Doc(text=content, metadata={"source": f"{conversation_id}:{turn_id}"})
-            self._docs_by_conv.setdefault(conversation_id, []).append(doc)
-
-            if conversation_id in self._index_by_conv:
-                self._index_by_conv[conversation_id].insert(doc)
-            else:
-                self._ensure_index(conversation_id)
-
-            if self.hooks:
-                self.hooks.after_add(conversation_id, turn_id, {"indexed": True})
+            # Insert into vector index (this will call our embedder)
+            self._index.insert(doc)
+            logger.info(f"[li.add_turn] stored: conv={conv_id} turn={turn_id} text={text!r}")
         except Exception as e:
-            if self.hooks:
-                self.hooks.after_add(conversation_id, turn_id, {"indexed": False, "error": str(e)})
+            logger.warning(f"[li.add_turn] failed: {e}; source={source}")
 
-    # ---------------- retrieval ----------------
+    # ---------------------------------------------------
+    # Retrieval
+    # ---------------------------------------------------
+    def retrieve(self, conv_id: str, query_text: str, top_k: int = 5, **kwargs) -> Dict[str, Any]:
+        q = (query_text or "").strip()
+        if not q:
+            return {"query": "", "results": []}
 
-    def retrieve(self, conversation_id: str, query: str, top_k: int = 5, subject_hint: Optional[str] = None) -> Dict[
-        str, Any]:
-        self._ensure_index(conversation_id)
+        # If you want per-conversation scoping: filter nodes by conv_id at query time.
+        # We’ll apply a simple metadata filter when building retriever (if supported).
+        limit = max(1, int(top_k))
 
-        if self.hooks:
-            # ✅ correct signature
-            self.hooks.before_retrieve(conversation_id, None, query, top_k)
-
-        t0 = time.perf_counter()
         try:
-            retriever = self._index_by_conv[conversation_id].as_retriever(similarity_top_k=max(1, top_k))
-            nodes = retriever.retrieve(query)
+            # v0.10 retriever
+            retriever = self._index.as_retriever(similarity_top_k=limit)
+            # Some versions support metadata filtering via retriever; else we post-filter
+            results = retriever.retrieve(q)
+        except TypeError:
+            # older API shape
+            retriever = self._index.as_retriever(top_k=limit)
+            results = retriever.retrieve(q)
 
-            items: List[Dict[str, Any]] = []
-            for nd in nodes:
-                text = getattr(nd, "text", "") or getattr(getattr(nd, "node", None), "text", "") or ""
-                score = float(getattr(nd, "score", 0.0) or 0.0)
-                meta = {}
-                try:
-                    meta = dict(getattr(getattr(nd, "node", None), "metadata", {}) or {})
-                except Exception:
-                    pass
-                src = meta.get("source", conversation_id)
-                ch = make_chunk(text=text, source=src)
-                items.append({
-                    "type": "chunk",
-                    "id": ch.chunk_id,
-                    "text": text,
-                    "source": src,
-                    "created_at": ch.created_at,
-                    "score": score,
-                    "scores": {"llamaindex": score},
-                })
+        # results → list of NodeWithScore
+        items: List[_RetrievalItem] = []
+        for r in results:
+            node = getattr(r, "node", None) or getattr(r, "node_with_score", None) or r
+            score = float(getattr(r, "score", 0.0) or 0.0)
 
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            if self.hooks:
-                self.hooks.after_retrieve(conversation_id, None, items, latency_ms, query)
-            return {"results": items, "latency_ms": latency_ms}
-        except Exception:
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            if self.hooks:
-                self.hooks.after_retrieve(conversation_id, None, [], latency_ms, query)
-            return {"results": [], "latency_ms": latency_ms}
+            meta = {}
+            try:
+                meta = dict(node.metadata or {})
+            except Exception:
+                pass
+
+            # Per-conversation scoping: drop items with mismatched conv_id
+            if self.restrict_to_conv and meta.get("conv_id") and meta.get("conv_id") != conv_id:
+                continue
+
+            text = ""
+            try:
+                text = (node.get_content() or "").strip()
+            except Exception:
+                # older versions
+                text = (getattr(node, "text", "") or "").strip()
+
+            item = _RetrievalItem(
+                type="memory",               # LlamaIndex path stores free text; you can add your own fact extraction if needed
+                id=str(getattr(node, "node_id", None) or getattr(node, "id_", None) or ""),
+                subject=None,
+                predicate=None,
+                object=None,
+                text=text,
+                score=score,
+                source=meta.get("source"),
+                created_at=meta.get("created_at"),
+            )
+            items.append(item)
+
+        # Logging like your mem0 adapter (facts vs memories)
+        logger.info(f"[li.retrieve] query={q!r} got {len(items)} result(s)")
+        for i, it in enumerate(items, start=1):
+            logger.info(f"  • MEMORY[{i}] text={it.text!r}, score={it.score:.3f}, src={it.source}")
+
+        return {
+            "query": q,
+            "results": [self._to_result_dict(it) for it in items[:limit]],
+        }
+
+    # ---------------------------------------------------
+    # Lifecycle
+    # ---------------------------------------------------
+    def reset(self) -> None:
+        """Delete the Chroma collection (clears all stored memories for this adapter)."""
+        try:
+            # chroma client: delete + recreate collection
+            self._chroma_client.delete_collection(self._collection)
+            self._chroma_collection = self._chroma_client.get_or_create_collection(self._collection)
+            self._vector_store = ChromaVectorStore(chroma_collection=self._chroma_collection)
+
+            # rebuild empty index bound to new collection
+            storage_ctx = _StorageContext.from_defaults(vector_store=self._vector_store)
+            if _LI_ServiceContext is not None:
+                self._index = _VectorStoreIndex.from_documents(documents=[], storage_context=storage_ctx, service_context=getattr(self, "_service_context", None))
+            else:
+                self._index = _VectorStoreIndex.from_documents(documents=[], storage_context=storage_ctx)
+            logger.info("[li.reset] collection cleared and index rebuilt")
+        except Exception as e:
+            logger.warning(f"[li.reset] failed: {e}")
+
+    def close(self) -> None:
+        """Nothing to close explicitly; Chroma client persists on disk."""
+        pass
+
+    # ---------------------------------------------------
+    # Helpers
+    # ---------------------------------------------------
+    @staticmethod
+    def _to_result_dict(it: _RetrievalItem) -> Dict[str, Any]:
+        return {
+            "type": it.type,
+            "id": it.id,
+            "subject": it.subject,
+            "predicate": it.predicate,
+            "object": it.object,
+            "text": it.text,
+            "score": it.score,
+            "source": it.source,
+            "created_at": it.created_at,
+        }

@@ -13,30 +13,52 @@ Optional:
 
 from memory.vector_memory import VectorMemory
 
-DATA = [
-    {
-        "conversation_id": "001",
-        "turns": [
-            {"role": "user", "content": "My name is Alice and I work at OpenAI."},
-            {"role": "assistant", "content": "Nice to meet you, Alice."},
-            {"role": "user", "content": "Actually, I work at Anthropic now."},
-            {"role": "assistant", "content": "Got it."}
-        ],
-        "eval": [
-            {"question": "Where does Alice work now?", "expected_answer": "anthropic"}
-        ]
-    },
-    {
-        "conversation_id": "002",
-        "turns": [
-            {"role": "user", "content": "I live in San Francisco and love espresso."},
-            {"role": "assistant", "content": "Espresso is great!"},
-            {"role": "user", "content": "By the way I switched to oat milk."}
-        ],
-        "eval": [
-            {"question": "What city do I live in?", "expected_answer": "san francisco"}
-        ]
-    }
+DATA = [{
+    "conversation_id": "SIMPLE_EASY_42_000",
+    "scenario": "simple",
+    "difficulty": "easy",
+    "noise_tags": [],
+    "turns": [
+        {
+            "role": "user",
+            "content": "Hi, I'm really into music. My favorite genre is indie folk."
+        },
+        {
+            "role": "assistant",
+            "content": "That's interesting! Indie folk often has a very unique sound. Do you have any favorite artists?"
+        },
+        {
+            "role": "user",
+            "content": "Yes, I really like Fleet Foxes and Bon Iver. Their harmonies are incredible."
+        },
+        {
+            "role": "assistant",
+            "content": "Both excellent choices. Their music definitely evokes a certain atmosphere."
+        },
+        {
+            "role": "user",
+            "content": "Agreed. Speaking of music, what's a good way to discover new artists in that genre?"
+        },
+        {
+            "role": "assistant",
+            "content": "There are several ways! You could try curated playlists on streaming services, explore music blogs, or even check out live local performances."
+        },
+        {
+            "role": "user",
+            "content": "That sounds like a good plan. By the way, what did I say my favorite music genre was?"
+        }
+    ],
+    "eval": [
+        {
+            "question": "what did i say my favorite music genre was?",
+            "expected_answer": "indie folk",
+            "relevant_texts": [
+                "my favorite genre is indie folk."
+            ],
+            "subject_hint": "user's favorite music genre"
+        }
+    ]
+}
 ]
 
 def main():
@@ -45,7 +67,7 @@ def main():
         name="demo_vm_llm",
         index_backend="chroma",
         collection_or_table="demo_facts_llm",
-        persist_path=".memdb/chroma",
+        persist_path=".memdb/chroma_vector_demo",
         restrict_to_conv=True,
     )
 

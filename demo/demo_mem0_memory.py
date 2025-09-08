@@ -1,191 +1,194 @@
-# repo/demo/demo_mem0_memory.py
+# demo_mem0_memory.py
+"""
+Demo: pass RAW user text to Mem0Memory.add_turn(...).
+Mem0Memory delegates extraction + storage + retrieval to the mem0 library.
+
+Requires your .env (or env vars) to define at least:
+  - OPENAI_BASE_URL
+  - OPENAI_API_KEY
+  - MB_CHAT_MODEL
+  - MB_EMBED_MODEL
+Optional:
+  - MB_COLLECTION (defaults to "mem0_default")
+  - LOG_LEVEL=DEBUG (to see detailed logs)
+
+Usage:
+  python demo_mem0_memory.py
+"""
+
 from __future__ import annotations
 
-import argparse
-import json
 import os
 import re
-import time
-from typing import Any, Dict, List, Optional
+from typing import Dict, Any, List
 
-from utils.factory import make_mem0_memory, make_hooks
+from memory.third_party.mem0_adapter import Mem0Memory
 
-
-# -----------------------------
-# tiny loader (JSONL of dicts)
-# -----------------------------
-def load_dataset(path: str) -> List[Dict[str, Any]]:
-    if path and os.path.exists(path):
-        data: List[Dict[str, Any]] = []
-        with open(path, "r", encoding="utf-8") as fh:
-            for i, line in enumerate(fh, 1):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    data.append(json.loads(line))
-                except Exception as e:
-                    print(f"[demo] bad JSON on line {i}: {e}", flush=True)
-        return data
-    # minimal fallback so demo always prints something
-    return [
-        {
-            "conversation_id": "M0_001",
-            "turns": [
-                {"role": "user", "content": "My name is Alice and I work at OpenAI."},
-                # {"role": "assistant", "content": "Nice to meet you, Alice."},
-                # {"role": "user", "content": "Actually, I work at Anthropic now."},
-                # {"role": "assistant", "content": "Got it."},
-            ],
-            "eval": [
-                {
-                    "question": "Where do I work now?",
-                    "expected_answer": "anthropic",
-                    "relevant_texts": ["actually, i work at anthropic now"],
-                    "subject_hint": "user",
-                }
-            ],
-        }
-    ]
-
-
-# -----------------------------
-# naive answer extraction
-# -----------------------------
-WORK_AT_RE = re.compile(r"\bwork(?:s)?\s+at\s+([A-Za-z][A-Za-z0-9 .&-]+)", re.I)
-LIVE_IN_RE = re.compile(r"\blive(?:s)?\s+in\s+([A-Za-z][A-Za-z0-9 .&-]+)", re.I)
-NAME_IS_RE = re.compile(r"\b(?:my\s+name\s+is|people\s+call\s+me)\s+([A-Za-z][A-Za-z0-9 .&-]+)", re.I)
-
-
-def extract_answer(query: str, items: List[Dict[str, Any]]) -> str:
-    ql = (query or "").lower()
-    for it in items:
-        txt = (it.get("text") or "")
-        if "work" in ql:
-            m = WORK_AT_RE.search(txt)
-            if m:
-                return m.group(1).strip().rstrip(".").lower()
-        if ("city" in ql or "live" in ql):
-            m = LIVE_IN_RE.search(txt)
-            if m:
-                return m.group(1).strip().rstrip(".").lower()
-        if "name" in ql:
-            m = NAME_IS_RE.search(txt)
-            if m:
-                return m.group(1).strip().rstrip(".").lower()
-    return "unknown"
-
-
-def exact_match(pred: str, gold: str) -> int:
-    return int((pred or "").strip().lower() == (gold or "").strip().lower())
-
-
-# -----------------------------
-# runner
-# -----------------------------
-def run_demo(
-    dataset: List[Dict[str, Any]],
-    top_k: int,
-    log_path: Optional[str],
-    subject_hint_arg: Optional[str],
-) -> None:
-    if log_path:
-        os.makedirs(os.path.dirname(log_path), exist_ok=True)
-        print(f"[demo] hooks logging to: {log_path}", flush=True)
-
-    hooks = make_hooks("mem0_memory", log_path=log_path, base_meta={"demo": True})
-
-    try:
-        mem = make_mem0_memory(hooks=hooks)
-    except ImportError as e:
-        print("ERROR: Mem0 not installed. Try: pip install mem0ai\n", e, flush=True)
-        return
-
-    n_convs = len(dataset)
-    n_evals = sum(len(c.get("eval", [])) for c in dataset)
-    print(f"[demo] loaded {n_convs} conversations with {n_evals} eval items.", flush=True)
-
-    if n_convs == 0 or n_evals == 0:
-        print("[demo] dataset had no evals → using built-in fallback.", flush=True)
-        dataset = load_dataset("")  # fallback
-
-    total_em, q_count = 0, 0
-
-    for conv in dataset:
-        cid = conv.get("conversation_id") or "conv"
-        turns = conv.get("turns", [])
-        evals = conv.get("eval", [])
-
-        # Ingest conversation turns
-        for i, turn in enumerate(turns, start=1):
-            role = turn.get("role", "")
-            content = turn.get("content", "")
-            mem.add_turn(cid, i, role, content)
-
-        # Evaluate
-        for q in evals:
-            question = q.get("question", "")
-            expected = q.get("expected_answer", "")
-            subject_hint = subject_hint_arg or q.get("subject_hint")
-
-            t0 = time.perf_counter()
-            res = mem.retrieve(cid, question, top_k=top_k, subject_hint=subject_hint)
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-
-            items = res.get("results", [])
-            ans = extract_answer(question, items)
-            em = exact_match(ans, expected)
-
-            q_count += 1
-            total_em += em
-
-            print("\n=== Query ===", flush=True)
-            print(question, flush=True)
-            if subject_hint:
-                print(f"(subject_hint: {subject_hint})", flush=True)
-
-            print(f"--- Retrieved (top_k={top_k}, {latency_ms:.1f} ms) ---", flush=True)
-            if not items:
-                print("(no results)", flush=True)
-            else:
-                for r in items:
-                    print(f"[{r.get('score',0):.3f}] {r.get('source','')} :: {r.get('text','')[:160]}", flush=True)
-
-            print("--- Answer ---", flush=True)
-            print(f"pred: {ans} | gold: {expected!r} | EM={em}", flush=True)
-
-    print("\n[demo] done.", flush=True)
-    if q_count:
-        print("Overall Exact Match: %.1f%% (%d/%d)" % (100.0 * total_em / q_count, total_em, q_count), flush=True)
-    else:
-        print("No eval items were executed (nothing to print).", flush=True)
+DATA: List[Dict[str, Any]] = [
+{
+  "conversation_id": "MULTIHOP_COMPLEX_42_000",
+  "scenario": "multihop",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emoji",
+    "multilingual",
+    "coreference",
+    "cross_session",
+    "chatter"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there, I was just thinking about my old colleague, Liam Chen. He's quite a brilliant data scientist, you know? 🤓"
+    },
+    {
+      "role": "assistant",
+      "content": "Oh, that's interesting! Data science is a fascinating field. Is he still with the same company?"
+    },
+    {
+      "role": "user",
+      "content": "Nah, he moved. He's at Quantum Innovations now. They're doing some really cutting-edge stuff with AI and machine learning. Pretty cool! 👍"
+    },
+    {
+      "role": "assistant",
+      "content": "Quantum Innovations, got it. Sounds like an exciting place to work."
+    },
+    {
+      "role": "user",
+      "content": "Yeah, I guess so. He's always super busy. Do you know if they have a big presence in the US? I forgot."
+    },
+    {
+      "role": "assistant",
+      "content": "I don't have that detail on hand, but I can tell you more about Quantum Innovations if you'd like."
+    },
+    {
+      "role": "user",
+      "content": "Not now, maybe later. I was trying to remember where their main office is. I know it's in Europe somewhere, but the city escapes me. 😅"
+    },
+    {
+      "role": "assistant",
+      "content": "No worries, take your time. Europe is a big place!"
+    },
+    {
+      "role": "user",
+      "content": "Ah! It's Stockholm. Definitely Stockholm. Jag älskar Sverige! 🇸🇪 Such a beautiful place."
+    },
+    {
+      "role": "assistant",
+      "content": "Stockholm, excellent! I've heard wonderful things about it."
+    },
+    {
+      "role": "user",
+      "content": "It truly is! Anyway, completely unrelated, did you catch that new space documentary on Netflix? Blew my mind! 🚀"
+    },
+    {
+      "role": "assistant",
+      "content": "Not yet, but I'll add it to my watch list! Sounds intriguing."
+    },
+    {
+      "role": "user",
+      "content": "You totally should. Ok, I'm heading out for a quick coffee break. Back in a bit! 👋"
+    },
+    {
+      "role": "assistant",
+      "content": "Enjoy your coffee! See you soon."
+    },
+    {
+      "role": "user",
+      "content": "(end of session)\n(new session)\nHi again! 👋 So glad to be back. The coffee was excellent."
+    },
+    {
+      "role": "assistant",
+      "content": "Welcome back! Glad to hear you enjoyed it."
+    },
+    {
+      "role": "user",
+      "content": "Just circling back to our earlier chat. About Liam Chen, the data scientist."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, what about him?"
+    },
+    {
+      "role": "user",
+      "content": "Given what we discussed, what city is Liam Chen's employer based in? 🤔"
+    },
+    {
+      "role": "assistant",
+      "content": "Liam Chen's employer, Quantum Innovations, is based in Stockholm."
+    }
+  ],
+  "eval": [
+    {
+      "question": "Given what we discussed, what city is Liam Chen's employer based in? 🤔",
+      "expected_answer": "stockholm",
+      "relevant_texts": [
+        "he's at quantum innovations now.",
+        "it's stockholm. definitely stockholm."
+      ],
+      "subject_hint": "liam chen"
+    }
+  ]
+}
+]
 
 
-def main():
-    ap = argparse.ArgumentParser(description="Demo: Mem0 Adapter")
-    ap.add_argument("--data", type=str, default="", help="Path to conversations.jsonl (optional).")
-    ap.add_argument("--top_k", type=int, default=5, help="Top-k to retrieve.")
-    ap.add_argument("--log", type=str, default="", help="Optional JSONL log path for eval hooks.")
-    ap.add_argument("--subject_hint", type=str, default="", help="Optional subject hint for retrieval.")
-    args = ap.parse_args()
+def _normalize(s: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", (s or "").lower()).strip()
 
-    # Environment summary (helps when debugging 401s/model routing)
-    print(f"[demo] data source: {args.data or '(fallback)'}", flush=True)
-    print(
-        f"[demo] OPENAI_BASE_URL={os.getenv('OPENAI_BASE_URL','') or '(unset)'} | "
-        f"MB_CHAT_MODEL={os.getenv('MB_CHAT_MODEL','') or '(unset)'} | "
-        f"MB_EMBED_MODEL={os.getenv('MB_EMBED_MODEL','') or '(unset)'}",
-        flush=True,
+
+def _extract_answer_from_hit(hit: Dict[str, Any]) -> str:
+    """
+    Mem0 results may be structured triples or just text memories depending on extractor.
+    Prefer structured ('object'), else fall back to raw 'text' and heuristic pick.
+    """
+    # Try structured fact
+    obj = (hit.get("object") or "").strip()
+    if obj:
+        return obj
+
+    # Otherwise, mine from text
+    txt = (hit.get("text") or "").strip()
+    return txt
+
+
+def run_demo() -> None:
+    # Build a Mem0Memory. Most config will be taken from env (see docstring).
+    mem = Mem0Memory(
+        name="demo_mem0",
+        collection=os.getenv("MB_COLLECTION", "mem0_default"),
+        chat_model=os.getenv("MB_CHAT_MODEL", "gemini-flash"),
+        embed_model=os.getenv("MB_EMBED_MODEL", "gemini-embedding"),
+        base_url=os.getenv("OPENAI_BASE_URL", ""),
+        api_key=os.getenv("OPENAI_API_KEY", ""),
+        restrict_to_conv=True,
     )
 
-    dataset = load_dataset(args.data)
-    run_demo(
-        dataset,
-        top_k=args.top_k,
-        log_path=(args.log or None),
-        subject_hint_arg=(args.subject_hint or None),
-    )
+    # Stream conversations into memory (we only index user turns; add_turn handles that)
+    for convo in DATA:
+        conv_id = convo["conversation_id"]
+        print(f"\n=== Conversation {conv_id} ===")
+        for i, turn in enumerate(convo["turns"], start=1):
+            mem.add_turn(conv_id, i, turn["role"], turn["content"])
+
+        # Simple evaluation phase
+        for q in convo.get("eval", []):
+            query = q["question"]
+            want = _normalize(q["expected_answer"])
+            res = mem.retrieve(conv_id, query, top_k=3)
+
+            got = ""
+            if res.get("results"):
+                # Take the best hit, attempt to extract the answer
+                got = _extract_answer_from_hit(res["results"][0])
+            got_norm = _normalize(got)
+
+            status = "PASS" if got_norm == want else "FAIL"
+            print(f"Q: {query}\n   expected={q['expected_answer']} | got={got}  [{status}]")
+
+    # Optionally clear the collection between runs (disabled by default)
+    # mem.reset()
 
 
 if __name__ == "__main__":
-    main()
+    run_demo()

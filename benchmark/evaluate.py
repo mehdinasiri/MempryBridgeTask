@@ -1,36 +1,36 @@
-#!/usr/bin/env python3
-# repo/benchmark/evaluate.py
+# benchmark/evaluate.py
 from __future__ import annotations
 
 import argparse
-import csv
 import json
+import os
+import sys
 import time
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from utils.factory import (
-    make_keyword_baseline,
-    make_vector_memory,
-    make_graph_memory,
-    make_hooks,
-)
+# Make sure project root is on sys.path if run as a script
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(THIS_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-from benchmark.metrics import (
-    metric_extraction_quality,
-    metric_retrieval_precision_k,
-    metric_retrieval_recall_k,
-    metric_update_accuracy,
-    metric_mrr,
-    metric_latency_ms,
-    aggregate_by_key,
-)
+from loguru import logger
+from ranx import Qrels, Run, evaluate as ranx_evaluate
 
-# Reuse naive answer extraction rules from demos
-import re
-WORK_AT_RE = re.compile(r"\bwork(?:s)?\s+at\s+([A-Za-z][A-Za-z0-9 .&-]+)", re.I)
-LIVE_IN_RE = re.compile(r"\blive(?:s)?\s+in\s+([A-Za-z][A-Za-z0-9 .&-]+)", re.I)
-NAME_IS_RE = re.compile(r"\b(?:my\s+name\s+is|people\s+call\s+me)\s+([A-Za-z][A-Za-z0-9 .&-]+)", re.I)
+# ---- memory systems ----
+from memory.keyword_baseline import KeywordBaseline
+from memory.vector_memory import VectorMemory
+from memory.graph_memory import GraphMemory
+from memory.third_party.mem0_adapter import Mem0Memory
+from memory.third_party.llamaindex_adapter import LlamaIndexMemory
+
+
+# ---- small helpers ----
+
+def norm(s: str) -> str:
+    return (s or "").strip().lower()
 
 
 def load_dataset(path: Path) -> List[Dict[str, Any]]:
@@ -99,324 +99,448 @@ def load_dataset(path: Path) -> List[Dict[str, Any]]:
     return items
 
 
-def extract_answer(query: str, retrieved_items: List[Dict[str, Any]]) -> str:
+def build_qrels_and_run_for_query(
+        conv_id: str,
+        question_id: str,
+        expected: str,
+        relevant_texts: List[str],
+        retrieved: List[Dict[str, Any]],
+        k: int,
+) -> Tuple[Dict[str, Dict[str, int]], Dict[str, Dict[str, float]]]:
     """
-    Preference: fact → edge → regex-from-chunk
+    Convert one query's retrieved items into ranx-compatible qrels & run.
+
+    qrels: {qid: {doc_id: relevance}}
+    run:   {qid: {doc_id: score}}
+
+    Heuristic:
+      - doc_id is formed from item.id if present, otherwise a stable hash of (type|subject|predicate|object|text)
+      - relevant if:
+          a) expected string appears in item.text OR item.object, or
+          b) any relevant_texts string appears in item.text
     """
-    ql = (query or "").lower()
+    qid = f"{conv_id}::{question_id}"
+    qrels: Dict[str, Dict[str, int]] = {qid: {}}
+    run: Dict[str, Dict[str, float]] = {qid: {}}
 
-    # Facts (graph memory)
-    for it in retrieved_items:
-        if it.get("type") == "fact":
-            pred = (it.get("predicate") or "").lower()
-            obj = (it.get("object") or "").lower()
-            if "work" in ql and pred in ("works_at", "work_at", "employer"):
-                return obj
-            if ("city" in ql or "live" in ql) and pred in ("lives_in", "live_in", "location"):
-                return obj
-            if "name" in ql and pred in ("name_is", "name"):
-                return obj
+    expected_l = norm(expected)
+    rel_texts_l = [norm(t) for t in (relevant_texts or [])]
 
-    # Graph edges
-    for it in retrieved_items:
-        if it.get("type") == "graph_edge":
-            p = (it.get("predicate") or "").lower()
-            v = (it.get("v") or "").lower()
-            if "work" in ql and p in ("works_at", "work_at", "employer"):
-                return v
-            if ("city" in ql or "live" in ql) and p in ("lives_in", "live_in", "location"):
-                return v
-            if "name" in ql and p in ("name_is", "name"):
-                return v
+    def make_doc_id(it: Dict[str, Any], idx: int) -> str:
+        if it.get("id"):
+            return str(it["id"])
+        # Stable synthetic id
+        parts = [
+            it.get("type") or "",
+            it.get("subject") or "",
+            it.get("predicate") or "",
+            it.get("object") or "",
+            it.get("text") or "",
+        ]
+        j = "::".join(parts)
+        return f"{hash(j)}_{idx}"
 
-    # Chunk regex fallback
-    for it in retrieved_items:
-        if it.get("type") == "chunk":
-            txt = (it.get("text") or "")
-            if "work" in ql:
-                m = WORK_AT_RE.search(txt)
-                if m: return m.group(1).strip().rstrip(".").lower()
-            if ("city" in ql or "live" in ql):
-                m = LIVE_IN_RE.search(txt)
-                if m: return m.group(1).strip().rstrip(".").lower()
-            if "name" in ql:
-                m = NAME_IS_RE.search(txt)
-                if m: return m.group(1).strip().rstrip(".").lower()
+    for idx, it in enumerate(retrieved[: max(k, 1)]):
+        doc_id = make_doc_id(it, idx)
+        score = float(it.get("score", 0.0))
+        run[qid][doc_id] = score
 
-    # Fallback: first token-ish
-    return (retrieved_items[0].get("text", "unknown").split()[0].lower() if retrieved_items else "unknown")
+        # relevance check
+        text_l = norm(it.get("text") or "")
+        obj_l = norm(it.get("object") or "")
+        is_rel = False
+        if expected_l and (expected_l in text_l or expected_l == obj_l or expected_l in obj_l):
+            is_rel = True
+        if rel_texts_l:
+            for rt in rel_texts_l:
+                if rt and rt in text_l:
+                    is_rel = True
+                    break
+        qrels[qid][doc_id] = 1 if is_rel else 0
+
+    return qrels, run
 
 
-def strings_from_index_snapshot(mem_name: str, memory_obj) -> List[str]:
+def predict_answer_from_items(items: List[Dict[str, Any]]) -> str:
     """
-    Try to snapshot what was 'extracted/indexed'.
-    - KeywordBaseline: chunks by text
-    - VectorMemory: indexed chunk texts
-    - GraphMemory: chunk texts + fact triples (subject/predicate/object)
+    Very simple "answer picker":
+      - If top item is a fact, return its 'object'
+      - Else return its 'text'
     """
-    out: List[str] = []
+    if not items:
+        return ""
+    top = items[0]
+    if top.get("type") == "fact":
+        return norm(top.get("object", ""))
+    return norm(top.get("text", ""))
+
+
+def _fmt_num(x, nd=3):
     try:
-        if mem_name == "keyword_baseline":
-            # Internal representation: memory.keyword_baseline.KeywordBaseline._docs
-            for conv_id, chunks in memory_obj._docs.items():  # type: ignore
-                out.extend([c.text for c in chunks])
-        elif mem_name == "vector_memory":
-            for conv_id, chunks in memory_obj._docs.items():  # type: ignore
-                out.extend([c.text for c in chunks])
-        elif mem_name == "graph_memory":
-            # facts
-            facts = memory_obj.facts.list_recent(limit=100000)  # type: ignore
-            for f in facts:
-                out.extend([f.subject, f.predicate, f.object])
-            # chunk texts
-            for conv_id, chunks in memory_obj._docs.items():  # type: ignore
-                out.extend([c.text for c in chunks])
-        else:
-            # Unknown memory; do best effort if it exposes ._docs
-            for conv_id, chunks in getattr(memory_obj, "_docs", {}).items():
-                out.extend([getattr(c, "text", "") for c in chunks])
+        return f"{float(x):.{nd}f}"
     except Exception:
-        pass
+        return str(x)
+
+
+def _agg_rows(rows: List[Dict[str, Any]], metrics_cols: List[str], count_col="count"):
+    if not rows:
+        return {}
+    out = {count_col: len(rows)}
+    for m in metrics_cols:
+        vals = [float(r.get(m, 0.0)) for r in rows]
+        out[m] = sum(vals) / max(len(vals), 1)
     return out
 
 
-def run_system(system: str, dataset: List[Dict[str, Any]], top_k: int, log_path: str | None, config_toggles: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], Dict[str, float]]:
-    """
-    Returns (per_query_rows, latency_summary). Each row contains metrics for one eval item.
-    """
-    if system == "keyword":
-        hooks = make_hooks("keyword_baseline", log_path=log_path, base_meta={"system": "keyword"})
-        mem = make_keyword_baseline(hooks=hooks)
-        mem_name = "keyword_baseline"
-    elif system == "vector":
-        hooks = make_hooks("vector_memory", log_path=log_path, base_meta={"system": "vector", **config_toggles})
-        mem = make_vector_memory(hooks=hooks, rerank=bool(config_toggles.get("rerank", False)))
-        # runtime config
-        mem.configure(index_user_only=config_toggles.get("index_user_only", True),
-                      dedup=config_toggles.get("dedup", True),
-                      recency_weight=config_toggles.get("recency_weight", 0.10))
-        mem_name = "vector_memory"
-    elif system == "graph":
-        hooks = make_hooks("graph_memory", log_path=log_path, base_meta={"system": "graph", **config_toggles})
-        mem = make_graph_memory(hooks=hooks,
-                                index_user_only=config_toggles.get("index_user_only", True),
-                                confidence_threshold=config_toggles.get("confidence_threshold", 0.5))
-        # weights toggle example
-        if "weights" in config_toggles:
-            a,b,g,d = config_toggles["weights"]
-            mem.configure(weights=(a,b,g,d))
-        mem_name = "graph_memory"
-    elif system == "mem0":
-        from utils.factory import make_hooks, make_mem0_memory
-        hooks = make_hooks("mem0_memory", log_path=log_path, base_meta={"system": "mem0"})
-        # Optionally pass a Mem0 config dict to pick vector store/graph store (see docs)
-        mem = make_mem0_memory(hooks=hooks, mem0_config=None)
-        mem_name = "mem0_memory"
+def _group_agg(rows: List[Dict[str, Any]], key: str, metrics_cols: List[str]):
+    groups = defaultdict(list)
+    for r in rows:
+        groups[r.get(key, "unknown")].append(r)
+    table = []
+    for g in sorted(groups.keys()):
+        agg = _agg_rows(groups[g], metrics_cols)
+        agg[key] = g
+        table.append(agg)
+    return table
 
-    elif system == "li":  # LlamaIndex
-        from utils.factory import make_hooks, make_llamaindex_memory
-        hooks = make_hooks("llamaindex_memory", log_path=log_path, base_meta={"system": "llamaindex"})
-        mem = make_llamaindex_memory(hooks=hooks)  # you can pass a llamaindex embed_model if you want
-        mem_name = "llamaindex_memory"
+
+def _print_table(title, rows, metrics_cols, extra_cols=None, sys_name=None):
+    if sys_name:
+        print(f"\n== {title} (system={sys_name}) ==")
     else:
-        raise ValueError("system must be one of: keyword, vector, graph")
-
-    rows: List[Dict[str, Any]] = []
-    latencies: List[float] = []
-
-    for conv in dataset:
-        cid = conv["conversation_id"]
-        for i, turn in enumerate(conv["turns"], start=1):
-            mem.add_turn(cid, i, turn["role"], turn["content"])
-
-        for ev in conv.get("eval", []):
-            q = ev["question"]
-            expected = ev["expected_answer"]
-            relevant = ev.get("relevant_texts", [])
-            subject_hint = ev.get("subject_hint", None)
-
-            t0 = time.perf_counter()
-            res = mem.retrieve(cid, q, top_k=top_k, subject_hint=subject_hint)  # subject_hint is accepted by GraphMemory; ignored otherwise
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            latencies.append(latency_ms)
-
-            items = res.get("results", [])
-            retrieved_texts: List[str] = []
-            for it in items:
-                # unify text across item types
-                if it.get("type") == "fact":
-                    retrieved_texts.append(f"{it.get('subject','')} {it.get('predicate','')} {it.get('object','')}")
-                elif it.get("type") == "graph_edge":
-                    retrieved_texts.append(f"{it.get('u','')} {it.get('predicate','')} {it.get('v','')}")
-                else:
-                    retrieved_texts.append(it.get("text", ""))
-
-            pred = extract_answer(q, items)
-
-            # snapshot what's indexed, for extraction-quality
-            snapshot = strings_from_index_snapshot(mem_name, mem)
-
-            row = {
-                "conv_id": cid,
-                "scenario": conv.get("scenario", "unknown"),
-                "difficulty": conv.get("difficulty", "unknown"),
-                "noise_tags": ",".join(conv.get("noise_tags", [])),
-                "system": system,
-                "top_k": top_k,
-                "pred": pred,
-                "gold": expected,
-                "EM": float(pred.strip().lower() == expected.strip().lower()),
-                "P@k": metric_retrieval_precision_k(retrieved_texts, relevant, top_k),
-                "R@k": metric_retrieval_recall_k(retrieved_texts, relevant, top_k),
-                "MRR": metric_mrr(retrieved_texts, relevant),
-                "UpdateAcc": metric_update_accuracy(pred, expected, retrieved_texts, relevant) if conv.get("scenario") == "update" else None,
-                "ExtractQ": metric_extraction_quality(snapshot, expected),
-                "LatencyMS": float(latency_ms),
-            }
-            rows.append(row)
-
-        # IMPORTANT: clear per-conv state if you evaluate each conv independently
-        # For cross-session tests keep memory persistent; here we keep it persistent by design.
-
-    latency_summary = metric_latency_ms(latencies)
-    return rows, latency_summary
-
-
-def write_csv(rows: List[Dict[str, Any]], path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+        print(f"\n== {title} ==")
     if not rows:
+        print("(no data)")
         return
-    with path.open("w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
-        w.writeheader()
+    cols = (extra_cols or []) + ["count"] + metrics_cols
+    header = "  ".join(f"{c:>12}" for c in cols)
+    print(header)
+    print("-" * len(header))
+    for r in rows:
+        line_vals = []
+        for c in cols:
+            v = r.get(c, "")
+            if c in {"scenario", "difficulty"}:
+                line_vals.append(f"{str(v):>12}")
+            elif c == "count":
+                try:
+                    line_vals.append(f"{int(v):>12d}")
+                except Exception:
+                    line_vals.append(f"{str(v):>12}")
+            else:
+                line_vals.append(f"{_fmt_num(v):>12}")
+        print("  ".join(line_vals))
+
+
+def print_per_system_reports(results_by_system: Dict[str, Dict[str, Any]]):
+    metric_cols = ["EM", "f1@K", "hits@K", "map", "mrr", "ndcg@K", "precision@K", "recall@K"]
+    for sys_name, pack in results_by_system.items():
+        macro = pack.get("macro", {})
+        perq = pack.get("per_query", [])
+
+        # Overall
+        overall_row = [{
+            "count": macro.get("count", len(perq)),
+            **{m: macro.get(m, 0.0) for m in metric_cols}
+        }]
+        _print_table("Overall", overall_row, metrics_cols=metric_cols, sys_name=sys_name)
+
+        # By scenario
+        by_scen = _group_agg(perq, key="scenario", metrics_cols=metric_cols)
+        _print_table("By scenario", by_scen, metrics_cols=metric_cols, extra_cols=["scenario"], sys_name=sys_name)
+
+        # By difficulty
+        by_diff = _group_agg(perq, key="difficulty", metrics_cols=metric_cols)
+        _print_table("By difficulty", by_diff, metrics_cols=metric_cols, extra_cols=["difficulty"], sys_name=sys_name)
+
+
+# ---- system runner ----
+
+def run_system(
+        system_name: str,
+        dataset: List[Dict[str, Any]],
+        *,
+        top_k: int,
+        index_backend: str,
+        collection_or_table: str,
+        vector_db_path: str,
+        graph_db_path: str,
+        mem0_chroma_path: str,
+        llama_chroma_path: str,
+        restrict_to_conv: bool,
+        verbose: bool,
+        print_k: int,
+) -> Dict[str, Any]:
+    """
+    Execute one memory system over the dataset and produce:
+      - macro ranx metrics + EM
+      - per-query rows for group aggregation
+    """
+    # 1) Construct memory
+    if system_name == "keyword":
+        mem = KeywordBaseline()
+    elif system_name == "vector":
+        mem = VectorMemory(
+            name="vector_memory",
+            index_backend=index_backend,
+            collection_or_table=collection_or_table,
+            persist_path=vector_db_path,
+            restrict_to_conv=restrict_to_conv,
+        )
+    elif system_name == "graph":
+        mem = GraphMemory(
+            name="graph_memory",
+            index_backend=index_backend,
+            collection_or_table=collection_or_table,
+            persist_path=graph_db_path,
+            graph_db_path=os.path.join(os.path.dirname(graph_db_path), "graph_evaluate.sqlite"),
+            restrict_to_conv=restrict_to_conv,
+        )
+    elif system_name == "mem0":
+        # Mem0 adapter; reads models/base_url/api_key from src.config.load_config()
+        mem = Mem0Memory(
+            name="mem0_memory_eval",
+            collection=collection_or_table,
+            restrict_to_conv=restrict_to_conv,
+            chroma_path=mem0_chroma_path,
+        )
+    elif system_name == "llama":
+        # LlamaIndex adapter; reads models/base_url/api_key from src.config.load_config()
+        mem = LlamaIndexMemory(
+            name="llamaindex_memory_eval",
+            collection=collection_or_table,
+            restrict_to_conv=restrict_to_conv,
+            chroma_path=llama_chroma_path,
+        )
+    else:
+        raise ValueError(f"Unknown system '{system_name}'")
+
+    logger.info(f"Running system={system_name}")
+
+    # 2) Build global qrels & run accumulators
+    all_qrels: Dict[str, Dict[str, int]] = {}
+    all_run: Dict[str, Dict[str, float]] = {}
+    per_query_rows: List[Dict[str, Any]] = []
+
+    for c in dataset:
+        conv_id = c.get("conversation_id") or c.get("id") or "unknown_conv"
+        scenario = c.get("scenario", "unknown")
+        difficulty = c.get("difficulty", "unknown")
+
+        # Ingest turns
+        for i, t in enumerate(c.get("turns", []), start=1):
+            mem.add_turn(conv_id, i, t.get("role", ""), t.get("content", ""))
+
+        # Evaluate questions for this conversation
+        for qi, ev in enumerate(c.get("eval", []), start=1):
+            q = ev.get("question", "")
+            expected = ev.get("expected_answer", "")
+            relevant_texts = ev.get("relevant_texts", []) or []
+
+            start = time.perf_counter()
+            out = mem.retrieve(conv_id, q, top_k=top_k)
+            latency_ms = (time.perf_counter() - start) * 1000.0
+            _ = latency_ms  # reserved for future latency reporting
+
+            # Normalize retrieved items into a simpler shape for use here
+            results = out.get("results", [])
+            simple_items = []
+            for it in results:
+                simple_items.append({
+                    "type": it.get("type"),
+                    "id": it.get("id"),
+                    "subject": it.get("subject"),
+                    "predicate": it.get("predicate"),
+                    "object": it.get("object"),
+                    "text": it.get("text") or it.get("object") or it.get("subject") or "",
+                    "score": float(it.get("score", 0.0)),
+                    "source": it.get("source"),
+                })
+
+            # Verbose: per-query printout
+            if verbose:
+                print(f"\n[{system_name}] conv={conv_id}")
+                print(f"Q: {q}")
+                pred = predict_answer_from_items(simple_items)
+                print(f"gold: {expected!r}   pred: {pred!r}   EM={1 if norm(expected) == pred else 0}")
+                for rank, it in enumerate(simple_items[:max(print_k, 1)], start=1):
+                    label = it["type"] or "item"
+                    shown = it[
+                        "text"] if label != "fact" else f"{it.get('subject')} | {it.get('predicate')} | {it.get('object')}"
+                    print(f"  #{rank:02d}  {label:<10} score={it['score']:.4f}  {shown}")
+
+            # qrels & run for this one query
+            qrels_q, run_q = build_qrels_and_run_for_query(
+                conv_id=conv_id,
+                question_id=str(qi),
+                expected=expected,
+                relevant_texts=relevant_texts,
+                retrieved=simple_items,
+                k=top_k,
+            )
+            all_qrels.update(qrels_q)
+            all_run.update(run_q)
+
+            # per-query row (for grouping/averaging); EM + placeholders (ranx macro done later)
+            per_query_rows.append({
+                "scenario": scenario,
+                "difficulty": difficulty,
+                "EM": 1.0 if norm(expected) == predict_answer_from_items(simple_items) else 0.0,
+                # The following are filled later as macro (groupwise via re-evaluate)
+                "f1@K": 0.0, "hits@K": 0.0, "map": 0.0, "mrr": 0.0,
+                "ndcg@K": 0.0, "precision@K": 0.0, "recall@K": 0.0,
+            })
+
+    # 3) Compute ranx metrics for ALL queries (macro)
+    qrels_all = Qrels(all_qrels)
+    run_all = Run(all_run)
+
+    # Note: the k used for @K metrics is the same as top_k in args
+    metrics = {
+        f"precision@{top_k}",
+        f"recall@{top_k}",
+        f"hits@{top_k}",
+        f"f1@{top_k}",
+        "map",
+        "mrr",
+        f"ndcg@{top_k}",
+    }
+    ranx_scores = ranx_evaluate(qrels_all, run_all, metrics=metrics)
+
+    # 4) Compute macro EM
+    macro_em = sum(r["EM"] for r in per_query_rows) / max(len(per_query_rows), 1)
+
+    macro = {
+        "count": len(per_query_rows),
+        "EM": macro_em,
+        "precision@K": ranx_scores.get(f"precision@{top_k}", 0.0),
+        "recall@K": ranx_scores.get(f"recall@{top_k}", 0.0),
+        "hits@K": ranx_scores.get(f"hits@{top_k}", 0.0),
+        "f1@K": ranx_scores.get(f"f1@{top_k}", 0.0),
+        "map": ranx_scores.get("map", 0.0),
+        "mrr": ranx_scores.get("mrr", 0.0),
+        "ndcg@K": ranx_scores.get(f"ndcg@{top_k}", 0.0),
+    }
+
+    # 5) Groupwise macro prints (scenario, difficulty)
+    def group_macro(group_key: str) -> List[Dict[str, Any]]:
+        rows = []
+        groups = defaultdict(list)
+        created_qids = list(qrels_all.qrels.keys())
+
+        for idx, pq in enumerate(per_query_rows):
+            g = pq.get(group_key, "unknown")
+            groups[g].append(created_qids[idx])
+
+        for g, qids in groups.items():
+            # slice qrels/run by qids
+            sub_qrels = {qid: qrels_all.qrels[qid] for qid in qids}
+            sub_run = {qid: run_all.run[qid] for qid in qids if qid in run_all.run}
+            if not sub_run:
+                rows.append({
+                    group_key: g, "count": len(qids),
+                    "EM": sum(per_query_rows[i]["EM"] for i, q in enumerate(created_qids) if q in qids) / max(len(qids),
+                                                                                                              1),
+                    "precision@K": 0.0, "recall@K": 0.0, "hits@K": 0.0, "f1@K": 0.0,
+                    "map": 0.0, "mrr": 0.0, "ndcg@K": 0.0
+                })
+                continue
+            scores = ranx_evaluate(Qrels(sub_qrels), Run(sub_run), metrics=metrics)
+            em = sum(per_query_rows[i]["EM"] for i, q in enumerate(created_qids) if q in qids) / max(len(qids), 1)
+            rows.append({
+                group_key: g, "count": len(qids),
+                "EM": em,
+                "precision@K": scores.get(f"precision@{top_k}", 0.0),
+                "recall@K": scores.get(f"recall@{top_k}", 0.0),
+                "hits@K": scores.get(f"hits@{top_k}", 0.0),
+                "f1@K": scores.get(f"f1@{top_k}", 0.0),
+                "map": scores.get("map", 0.0),
+                "mrr": scores.get("mrr", 0.0),
+                "ndcg@K": scores.get(f"ndcg@{top_k}", 0.0),
+            })
+
+        # pretty print like your earlier style:
+        print(f"\n== Overall by system ({system_name}) ==")
+        print(
+            f"count={macro['count']}  EM={_fmt_num(macro['EM'])}  f1@{top_k}={_fmt_num(macro['f1@K'])}  hits@{top_k}={_fmt_num(macro['hits@K'])}  map={_fmt_num(macro['map'])}  mrr={_fmt_num(macro['mrr'])}  ndcg@{top_k}={_fmt_num(macro['ndcg@K'])}  precision@{top_k}={_fmt_num(macro['precision@K'])}  recall@{top_k}={_fmt_num(macro['recall@K'])}")
+        print(f"\n== By system × {group_key} ({system_name}) ==")
         for r in rows:
-            w.writerow(r)
+            print(
+                f"{group_key}={r[group_key]:<12} count={r['count']:>3}  EM={_fmt_num(r['EM'])}  f1@{top_k}={_fmt_num(r['f1@K'])}  hits@{top_k}={_fmt_num(r['hits@K'])}  map={_fmt_num(r['map'])}  mrr={_fmt_num(r['mrr'])}  ndcg@{top_k}={_fmt_num(r['ndcg@K'])}  precision@{top_k}={_fmt_num(r['precision@K'])}  recall@{top_k}={_fmt_num(r['recall@K'])}")
+
+        return rows
+
+    # Produce compact prints like your earlier style:
+    _ = group_macro("scenario")
+    _ = group_macro("difficulty")
+
+    return {
+        "macro": macro,
+        "per_query": per_query_rows,
+    }
 
 
-def try_make_plots(summary_rows: List[Dict[str, Any]], out_dir: Path, title: str) -> None:
-    """
-    Optional bar charts if matplotlib is available.
-    """
-    try:
-        import matplotlib.pyplot as plt
-    except Exception:
-        return
+# ---- CLI ----
 
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    # Bar by system x scenario: EM
-    try:
-        systems = sorted({r["system"] for r in summary_rows})
-        scenarios = sorted({r["scenario"] for r in summary_rows})
-        for metric in ("EM", "P@k", "R@k", "MRR"):
-            for sc in scenarios:
-                xs = []
-                ys = []
-                for sys in systems:
-                    grp = [r for r in summary_rows if r["system"] == sys and r["scenario"] == sc]
-                    val = sum(r.get(metric, 0.0) * r.get("count", 1) for r in grp) / max(1, sum(r.get("count", 1) for r in grp))
-                    xs.append(sys)
-                    ys.append(val)
-                plt.figure()
-                plt.bar(xs, ys)
-                plt.title(f"{title} — {metric} by system on scenario: {sc}")
-                plt.ylabel(metric)
-                plt.xlabel("system")
-                plt.tight_layout()
-                plt.savefig(out_dir / f"{metric}_by_system_{sc}.png", dpi=150)
-                plt.close()
-    except Exception:
-        pass
+def parse_args():
+    ap = argparse.ArgumentParser(description="Evaluate memory systems on conversation datasets.")
+    ap.add_argument("--data",default="datasets/conversations.jsonl", help="Path to JSON/JSONL dataset.")
+    ap.add_argument(
+        "--compare",
+        default="keyword,vector,graph",
+        help="Comma-separated systems: keyword,vector,graph,mem0,llama",
+    )
+    ap.add_argument("--top_k", type=int, default=3, help="Top-K to retrieve/evaluate.")
+    ap.add_argument("--index_backend", default="chroma", choices=["chroma", "lancedb"],
+                    help="Vector backend for vector/graph memories.")
+    ap.add_argument("--collection_or_table", default="memorybridge_facts",
+                    help="Collection/table name for vector stores.")
+    ap.add_argument("--vector_db_path", default=".memdb/vector_chroma", help="Persist dir for VectorMemory.")
+    ap.add_argument("--graph_db_path", default=".memdb/graph_chroma",
+                    help="Persist dir for GraphMemory's internal vector index.")
+    ap.add_argument("--mem0_chroma_path", default=".memdb/mem0_chroma_eval",
+                    help="Persist dir for Mem0Memory's Chroma store.")
+    ap.add_argument("--llama_chroma_path", default=".memdb/llamaindex_chroma_eval",
+                    help="Persist dir for LlamaIndexMemory's Chroma store.")
+    ap.add_argument("--restrict_to_conv", action="store_true", help="Scope retrieval to the same conversation.")
+    ap.add_argument("--verbose", action="store_true", help="Print per-query details.")
+    ap.add_argument("--print_k", type=int, default=5,
+                    help="How many retrieved items to print per query when --verbose.")
+    ap.add_argument("--results_file", default=None, help="Optional path to save results as JSON.")
+    return ap.parse_args()
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Evaluate memory systems on synthetic conversations.")
-    ap.add_argument("--data", type=str, required=True, help="Path to conversations.jsonl generated by generate_dataset.py")
-    ap.add_argument("--outdir", type=str, default="benchmark/results", help="Output directory for CSV/plots.")
-    ap.add_argument("--top_k", type=int, default=5, help="Retriever top-k.")
-    ap.add_argument("--compare", type=str, default="keyword,vector,graph,mem0,li",
-                    help="Comma-separated systems: keyword,vector,graph,mem0,li")
-    # A/B toggles for your system
-    ap.add_argument("--vector_rerank", action="store_true", help="Enable LLM reranker in VectorMemory.")
-    ap.add_argument("--no_vector_dedup", action="store_true", help="Disable dedup in VectorMemory.")
-    ap.add_argument("--graph_low_conf", action="store_true", help="Lower confidence threshold in GraphMemory (0.3).")
-    ap.add_argument("--weights", type=str, default="", help="Graph weights alpha,beta,gamma,delta (e.g. 0.5,0.3,0.1,0.1)")
-    args = ap.parse_args()
-
+    args = parse_args()
     dataset = load_dataset(Path(args.data))
-    outdir = Path(args.outdir)
-    outdir.mkdir(parents=True, exist_ok=True)
+    systems = [s.strip().lower() for s in args.compare.split(",") if s.strip()]
 
-    systems = [s.strip() for s in args.compare.split(",") if s.strip()]
+    results_by_system = {}
+    for sys_name in systems:
+        results_by_system[sys_name] = run_system(
+            sys_name,
+            dataset,
+            top_k=args.top_k,
+            index_backend=args.index_backend,
+            collection_or_table=args.collection_or_table,
+            vector_db_path=args.vector_db_path,
+            graph_db_path=args.graph_db_path,
+            mem0_chroma_path=args.mem0_chroma_path,
+            llama_chroma_path=args.llama_chroma_path,
+            restrict_to_conv=args.restrict_to_conv,
+            verbose=args.verbose,
+            print_k=args.print_k,
+        )
 
-    all_rows: List[Dict[str, Any]] = []
-    latency_rows: List[Dict[str, Any]] = []
+    # Final clean, per-system reports (overall + scenario + difficulty)
+    print_per_system_reports(results_by_system)
+    # Save results to file if requested
 
-    for sysname in systems:
-        if sysname == "keyword":
-            rows, lat = run_system(
-                "keyword", dataset, top_k=args.top_k, log_path=str(outdir / "keyword_logs.jsonl"),
-                config_toggles={}
-            )
-        elif sysname == "vector":
-            rows, lat = run_system(
-                "vector", dataset, top_k=args.top_k, log_path=str(outdir / "vector_logs.jsonl"),
-                config_toggles={
-                    "rerank": bool(args.vector_rerank),
-                    "dedup": (not args.no_vector_dedup),
-                }
-            )
-        elif sysname == "graph":
-            weights = None
-            if args.weights:
-                try:
-                    a,b,g,d = [float(x.strip()) for x in args.weights.split(",")]
-                    weights = (a,b,g,d)
-                except Exception:
-                    weights = None
-            rows, lat = run_system(
-                "graph", dataset, top_k=args.top_k, log_path=str(outdir / "graph_logs.jsonl"),
-                config_toggles={
-                    "confidence_threshold": (0.3 if args.graph_low_conf else 0.5),
-                    **({"weights": weights} if weights else {})
-                }
-            )
-        else:
-            raise ValueError(f"Unknown system: {sysname}")
-
-        all_rows.extend(rows)
-        latency_rows.append({"system": sysname, **lat})
-
-    # Write per-query results
-    write_csv(all_rows, outdir / "per_query_results.csv")
-
-    # Summaries by system, scenario, difficulty
-    # (average of metrics across groups)
-    metric_keys = ["EM", "P@k", "R@k", "MRR", "ExtractQ"]
-    by_system = aggregate_by_key(all_rows, "system", metric_keys)
-    by_scenario = aggregate_by_key(all_rows, "scenario", ["EM", "P@k", "R@k", "MRR"])
-    by_difficulty = aggregate_by_key(all_rows, "difficulty", ["EM", "P@k", "R@k", "MRR"])
-
-    write_csv(by_system, outdir / "summary_by_system.csv")
-    write_csv(by_scenario, outdir / "summary_by_scenario.csv")
-    write_csv(by_difficulty, outdir / "summary_by_difficulty.csv")
-    write_csv(latency_rows, outdir / "latency_summary.csv")
-
-    # Optional quick plots
-    try_make_plots(
-        # Expand per-scenario bars: duplicate rows with 'count' to weight
-        [{"system": r["system"], "scenario": r.get("scenario", "all"), "count": 1, **{m: r.get(m, 0.0) for m in metric_keys}} for r in all_rows],
-        out_dir=(outdir / "plots"),
-        title="Memory Benchmark"
-    )
-
-    print(f"\nWrote results to: {outdir}\n")
-    print("Key files:")
-    print(f"- {outdir/'per_query_results.csv'}")
-    print(f"- {outdir/'summary_by_system.csv'}")
-    print(f"- {outdir/'summary_by_scenario.csv'}")
-    print(f"- {outdir/'summary_by_difficulty.csv'}")
-    print(f"- {outdir/'latency_summary.csv'}")
+    if args.results_file:
+        import json
+    with open(args.results_file, "w", encoding="utf-8") as f:
+        json.dump(results_by_system, f, indent=2, ensure_ascii=False)
+    logger.info(f"Saved results to {args.results_file}")
 
 
 if __name__ == "__main__":

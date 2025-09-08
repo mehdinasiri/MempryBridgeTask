@@ -287,7 +287,7 @@ def generate_dataset(
 def main():
     ap = argparse.ArgumentParser(description="LLM-driven synthetic dataset generator for memory benchmarking (JSONL).")
     ap.add_argument("--seed", type=int, default=7, help="Random seed for IDs/variety (not strict).")
-    ap.add_argument("--out", type=str, default="benchmark/datasets/conversations.jsonl", help="Output JSONL path.")
+    ap.add_argument("--out", type=str, default="benchmark/datasets/conversations.json", help="Output JSONL path.")
     ap.add_argument("--promptlog", type=str, default="benchmark/datasets/promptlog.jsonl", help="Prompt log JSONL path.")
     # Per-scenario counts (easy/moderate/complex)
     ap.add_argument("--simple", type=str, default="10,10,10", help="Counts easy,moderate,complex for SIMPLE.")
