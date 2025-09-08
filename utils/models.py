@@ -71,6 +71,7 @@ class AtomicFact:
     def key(self) -> Tuple[str, str]:
         return (norm_entity(self.subject), norm_entity(self.predicate))
 
+
     def copy_with(self, **updates) -> "AtomicFact":
         return replace(self, **updates)
 
@@ -163,10 +164,6 @@ class RetrievalItem:
     created_at: Optional[str] = None
     score: Optional[float] = None
     scores: Dict[str, float] = field(default_factory=dict)
-    # graph specifics
-    u: Optional[str] = None
-    v: Optional[str] = None
-    fact_ids: Optional[List[str]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

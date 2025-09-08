@@ -9,3 +9,5 @@
 /memory/third_party/__pycache__/
 /benchmark/__pycache__/
 benchmark/results/
+/demo/viz/
+/demo/lib/

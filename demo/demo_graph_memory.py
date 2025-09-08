@@ -1,159 +1,175 @@
-# repo/demo/demo_graph_memory.py
+# demo_complex_graph_memory.py
 from __future__ import annotations
 
 import os
-from typing import List, Dict, Any
+from pathlib import Path
+from typing import Dict, Any, List
 
 from loguru import logger
-
-from utils.config import load_config  # ensures logger is initialized in your setup
 from memory.graph_memory import GraphMemory
+from pyvis.network import Network
 
-CONVERSATIONS: List[Dict[str, Any]] = [{
-    "conversation_id": "SIMPLE_EASY_42_000",
-    "scenario": "simple",
-    "difficulty": "easy",
-    "noise_tags": [],
-    "turns": [
-        {
-            "role": "user",
-            "content": "Hi, I'm really into music. My favorite genre is indie folk."
-        },
-        {
-            "role": "assistant",
-            "content": "That's interesting! Indie folk often has a very unique sound. Do you have any favorite artists?"
-        },
-        {
-            "role": "user",
-            "content": "Yes, I really like Fleet Foxes and Bon Iver. Their harmonies are incredible."
-        },
-        {
-            "role": "assistant",
-            "content": "Both excellent choices. Their music definitely evokes a certain atmosphere."
-        },
-        {
-            "role": "user",
-            "content": "Agreed. Speaking of music, what's a good way to discover new artists in that genre?"
-        },
-        {
-            "role": "assistant",
-            "content": "There are several ways! You could try curated playlists on streaming services, explore music blogs, or even check out live local performances."
-        },
-        {
-            "role": "user",
-            "content": "That sounds like a good plan. By the way, what did I say my favorite music genre was?"
+def render_conv_graph_pyvis(mem, conv_id: str, out_dir: str = "viz") -> str:
+    if not hasattr(mem, "_G") or conv_id not in mem._G:
+        print(f"[viz] No graph for conversation: {conv_id}")
+        return ""
+
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    html_path = str(out / f"graph_{conv_id}.html")
+
+    G = mem._G[conv_id]
+
+    net = Network(height="92vh", width="100%", directed=True, bgcolor="#ffffff")
+    # physics & style must be JSON, not JS:
+    net.set_options("""
+    {
+      "edges": { "font": { "size": 12, "align": "middle" } },
+      "nodes": { "font": { "size": 14 } },
+      "physics": {
+        "enabled": true,
+        "stabilization": { "iterations": 250 },
+        "solver": "forceAtlas2Based",
+        "forceAtlas2Based": {
+          "gravitationalConstant": -35,
+          "centralGravity": 0.005,
+          "springConstant": 0.08
         }
-    ],
-    "eval": [
-        {
-            "question": "what did i say my favorite music genre was?",
-            "expected_answer": "indie folk",
-            "relevant_texts": [
-                "my favorite genre is indie folk."
-            ],
-            "subject_hint": "user's favorite music genre"
-        }
-    ]
-}
-]
+      },
+      "interaction": { "hover": true, "tooltipDelay": 120 }
+    }
+    """)
+
+    # nodes
+    for n in G.nodes():
+        net.add_node(n, label=n, title=n, shape="dot", size=16)
+
+    # edges with hover tooltips
+    for u, v, k, data in G.edges(keys=True, data=True):
+        pred = data.get("predicate", "")
+        conf = data.get("confidence", 0.0)
+        ev   = (data.get("evidence") or "").strip()
+        title = f"<b>{u}</b> — <i>{pred}</i> → <b>{v}</b><br/>conf: {conf:.2f}"
+        if ev:
+            title += f"<br/>{ev}"
+        net.add_edge(u, v, label=pred, title=title, arrows="to", smooth=True)
+
+    net.write_html(html_path, open_browser=False, notebook=False)
+    print(f"[viz] wrote: {html_path}")
+    return html_path
+
+def print_results(question: str, results: List[Dict[str, Any]]) -> None:
+    print(f"\nQ: {question}")
+    if not results:
+        print("   [NO RESULTS]")
+        return
+    print("   Top results:")
+    for i, r in enumerate(results, start=1):
+        subj = r.get("subject")
+        pred = r.get("predicate")
+        obj = r.get("object")
+        score = r.get("score", 0.0)
+        ev = r.get("text") or ""
+        print(f"   #{i:02d}: ({subj} | {pred} | {obj})")
+        print(f"        score={score:.3f}  evidence='{ev}'")
 
 
-# [
-#     {
-#         "conversation_id": "001",
-#         "turns": [
-#                 {"role": "user", "content": "My name is Alice and I work at OpenAI."},
-#                 {"role": "assistant", "content": "Nice to meet you, Alice."},
-#                 {"role": "user", "content": "Actually, I work at Anthropic now."},
-#                 {"role": "assistant", "content": "Got it."}
-#         ],
-#         "eval": [
-#             {"question": "Where does Alice work now?", "expected_answer": "anthropic"},
-#         ],
-#     },
-#     {
-#         "conversation_id": "002",
-#         "turns": [
-#                 {"role": "user", "content": "I live in San Francisco and love espresso."},
-#                 {"role": "assistant", "content": "Espresso is great!"},
-#                 {"role": "user", "content": "By the way I switched to oat milk."}
-#         ],
-#         "eval": [
-#             {"question": "What city do I live in?", "expected_answer": "san francisco"},
-#         ],
-#     },
-# ]
-
-
-def pretty(item: Dict[str, Any]) -> str:
-    """Tiny helper to stringify a retrieval item."""
-    if item.get("type") == "fact":
-        subj = item.get("subject")
-        pred = item.get("predicate")
-        obj = item.get("object")
-        ev = item.get("text")
-        return f"FACT: ({subj} | {pred} | {obj})  evidence={ev!r}  score={item.get('score')}"
-    return f"{item.get('type')}: {item}"
-
-
-def run_eval(mem: GraphMemory, conv: Dict[str, Any]) -> None:
-    conv_id = conv["conversation_id"]
-
+def stream_conversation(mem: GraphMemory, convo: Dict[str, Any]) -> None:
+    conv_id = convo["conversation_id"]
     print(f"\n=== Conversation {conv_id} ===")
-    # Ingest each turn (only user turns are indexed for facts in Vector/GraphMemory)
-    for i, turn in enumerate(conv["turns"], start=1):
-        mem.add_turn(conv_id, i, turn["role"], turn["content"])
 
-    # Ask evaluation questions
-    for q in conv.get("eval", []):
-        question = q["question"]
-        expected = (q.get("expected_answer") or "").strip().lower()
-        res = mem.retrieve(conv_id, question, top_k=1)
-        got = ""
-        evidence = ""
-        if res["results"]:
-            top = res["results"][0]
-            # Heuristic: if it’s a fact, take the object as the answer
-            if top.get("type") == "fact":
-                got = str(top.get("object") or "").strip().lower()
-                evidence = str(top.get("text") or "")
-            else:
-                # Fallback: try to read something meaningful
-                got = str(top.get("text") or top).strip().lower()
+    for i, t in enumerate(convo["turns"], start=1):
+        mem.add_turn(conv_id, i, t["role"], t["content"])
 
-        ok = "OK" if expected and expected in got else "FAIL"
-        print(f"Q: {question}\n   expected={expected} got={got} [{ok}]")
-        if evidence:
-            print(f"   evidence: {evidence}")
+    for q in convo.get("queries", []):
+        res = mem.retrieve(conv_id, q, top_k=5)
+        print_results(q, res["results"])
+
+    html_path = render_conv_graph_pyvis(mem, conv_id, out_dir="viz")
+    if html_path:
+        print(f"\n   → Graph saved: {html_path}")
 
 
 def main():
-    # 1) Load config (.env) and initialize logging
-    cfg = load_config()
-    logger.info("Config loaded for demo (GraphMemory)")
-
-    # Quick check: make sure LLM credentials exist (demo will still run, but extraction will fail otherwise)
-    base_url = cfg.get("OPENAI_BASE_URL", "")
-    api_key = cfg.get("OPENAI_API_KEY", "")
-    if not base_url or not api_key:
-        logger.warning(
-            "OPENAI_BASE_URL / OPENAI_API_KEY not set. "
-            "The demo will try to run but fact extraction will likely fail."
-        )
-
-    # 2) Create GraphMemory (same args as VectorMemory; graph persists to SQLite)
     mem = GraphMemory(
-        name="graph_memory_demo",
-        index_backend="chroma",  # or "lancedb"
-        collection_or_table="demo_facts_graph",
-        persist_path=".memdb/chroma_graph_demo",  # for lancedb: ".memdb/lancedb"
         restrict_to_conv=True,
-        graph_db_path=".memdb/graph_demo.sqlite",  # graph persistence
+        max_hops=2,
+        enable_query_fact_extraction=True,
     )
 
-    # 3) Run demo conversations
-    for conv in CONVERSATIONS:
-        run_eval(mem, conv)
+    CONVOS: List[Dict[str, Any]] = [
+        {
+            "conversation_id": "MULTI_HOP_COREF_001",
+            "turns": [
+                {"role": "user", "content": "My colleague, Liam Chen, is a brilliant data scientist."},
+                {"role": "assistant", "content": "Nice!"},
+                {"role": "user", "content": "He moved jobs. He's at Quantum Innovations now."},
+                {"role": "assistant", "content": "Got it."},
+                {"role": "user", "content": "I think their main office is somewhere in Europe."},
+                {"role": "assistant", "content": "Okay."},
+                {"role": "user", "content": "(new session) Okay, I remember: it's Stockholm. Definitely Stockholm."},
+            ],
+            "queries": [
+                "Where does Liam work now?",
+                "What city is Liam's employer based in?",
+                "What continent is that city in?",
+            ],
+        },
+        {
+            "conversation_id": "UPDATES_SUPERSEDES_002",
+            "turns": [
+                {"role": "user", "content": "My name is Alice. I work at OpenAI."},
+                {"role": "assistant", "content": "Hello Alice!"},
+                {"role": "user", "content": "Actually, I switched companies. I work at Anthropic now."},
+                {"role": "assistant", "content": "Updated."},
+                {"role": "user", "content": "Anthropic is headquartered in San Francisco."},
+            ],
+            "queries": [
+                "Where does Alice work?",
+                "What city is Alice's employer headquartered in?",
+            ],
+        },
+        {
+            "conversation_id": "UNCERTAINTY_COMPETING_003",
+            "turns": [
+                {"role": "user", "content": "Bob works at Nova Labs."},
+                {"role": "assistant", "content": "Noted."},
+                {"role": "user", "content": "Nova Labs is focused on robotics."},
+                {"role": "assistant", "content": "Interesting."},
+                {"role": "user", "content": "I heard they might move their HQ to Berlin soon, not sure though."},
+                {"role": "assistant", "content": "Okay."},
+                {"role": "user", "content": "Correction: their main office is actually in Munich."},
+            ],
+            "queries": [
+                "What does Nova Labs focus on?",
+                "Where is Nova Labs' main office?",
+                "Which city is Bob's employer based in?",
+            ],
+        },
+        {
+            "conversation_id": "LONGER_CHAIN_004",
+            "turns": [
+                {"role": "user", "content": "Zara founded Helix Bio."},
+                {"role": "assistant", "content": "Okay."},
+                {"role": "user", "content": "Helix Bio acquired MicroCore."},
+                {"role": "assistant", "content": "Noted."},
+                {"role": "user", "content": "MicroCore is based in Cambridge."},
+                {"role": "assistant", "content": "Thanks."},
+                {"role": "user", "content": "Zara later became the CTO at Helix Bio."},
+                {"role": "assistant", "content": "Updated."},
+                {"role": "user", "content": "Helix Bio’s European HQ is in Zurich."},
+                {"role": "assistant", "content": "Okay."},
+                {"role": "user", "content": "Also, unrelated: I love espresso."},
+            ],
+            "queries": [
+                "Where is the European HQ of the company Zara is CTO at?",
+                "Which city is the subsidiary of Zara's company based in?",
+            ],
+        },
+    ]
+
+    for convo in CONVOS:
+        stream_conversation(mem, convo)
 
 
 if __name__ == "__main__":

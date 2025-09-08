@@ -27,6 +27,9 @@ ranx
 chromadb
 llama-index-vector-stores-chroma
 
-pip install -U "llama-index>=0.10.50" \
-               "llama-index-vector-stores-chroma>=0.1.10" \
-               "chromadb>=0.5.5"
+llama-index>=0.10.50
+llama-index-vector-stores-chroma>=0.1.10
+
+chromadb>=0.5.5
+
+pyvis
