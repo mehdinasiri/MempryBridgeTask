@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  memory-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: memory-api:latest
+    container_name: memory-api
+    ports:
+      - "8888:8000"
+    environment:
+      # Pass through (or set defaults) for your backends
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MB_CHAT_MODEL=${MB_CHAT_MODEL:-gemini-flash}
+      - MB_EMBED_MODEL=${MB_EMBED_MODEL:-gemini-embedding}
+      # App runtime knobs (match Dockerfile defaults)
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - WEB_CONCURRENCY=${WEB_CONCURRENCY:-2}
+      - HOST=0.0.0.0
+      - PORT=8000
+    # Persist vector DBs (e.g., Chroma/LanceDB) and any local caches
+    volumes:
+      - memdb:/app/.memdb
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/docs >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  memdb:
