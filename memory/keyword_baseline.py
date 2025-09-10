@@ -28,6 +28,8 @@ DEFAULT_STOPWORDS: Set[str] = {
     "he", "she", "they", "them", "their", "theirs",
 }
 
+_INTERROGATIVE_RE = re.compile(r"^\s*(what|who|whom|whose|which|where|when|why|how)\b", re.IGNORECASE)
+
 def tokenize(text: str, stopwords: Set[str] = DEFAULT_STOPWORDS) -> List[str]:
     """Return lowercase tokens (alnum + underscore), removing simple stopwords."""
     toks = [t.lower() for t in _TOKEN_RE.findall(text or "")]
@@ -44,6 +46,7 @@ class KeywordBaseline(MemorySystem):
 
     Behavior:
       - Indexes only USER turns (ignores assistant/system).
+      - (By default) skips indexing question-like user turns to avoid retrieving the query itself.
       - Deduplicates exact same normalized user text per conversation.
       - Scores with BM25 (k1, b) using per-conversation statistics.
       - Returns top-K chunks that best match the query.
@@ -51,10 +54,18 @@ class KeywordBaseline(MemorySystem):
     This is a *baseline* to compare with VectorMemory/GraphMemory.
     """
 
-    def __init__(self, name: str = "keyword_baseline", bm25_k1: float = 1.5, bm25_b: float = 0.75):
+    def __init__(
+        self,
+        name: str = "keyword_baseline",
+        bm25_k1: float = 1.5,
+        bm25_b: float = 0.75,
+        *,
+        index_questions: bool = False,
+    ):
         super().__init__(name=name)
         self.k1 = float(bm25_k1)
         self.b = float(bm25_b)
+        self.index_questions = bool(index_questions)
 
         # Per-conversation stores
         self._docs: Dict[str, List[Chunk]] = defaultdict(list)
@@ -69,6 +80,13 @@ class KeywordBaseline(MemorySystem):
     # Ingestion
     # ---------------------------
 
+    def _looks_like_question(self, text: str) -> bool:
+        if "?" in text:
+            return True
+        if _INTERROGATIVE_RE.search(text):
+            return True
+        return False
+
     def add_turn(self, conv_id: str, turn_id: int, role: str, text: str) -> None:
         """Index a single USER turn as a document (dedup within conversation)."""
         logger.debug(f"[kb.add_turn] conv={conv_id} turn={turn_id} role={role} type=str")
@@ -79,6 +97,11 @@ class KeywordBaseline(MemorySystem):
         norm = norm_text(text)
         if not norm:
             logger.debug("[kb.add_turn] empty text; skip")
+            return
+
+        # (Default) Do not index user questions to avoid retrieving the query itself
+        if not self.index_questions and self._looks_like_question(norm):
+            logger.debug("[kb.add_turn] looks like a question; skip indexing for baseline")
             return
 
         # Deduplicate identical normalized text in this conversation
@@ -147,8 +170,11 @@ class KeywordBaseline(MemorySystem):
         scores.sort(key=lambda x: x[0], reverse=True)
 
         items: List[RetrievalItem] = []
-        for s, i in scores[:max(1, top_k)]:
+        for s, i in scores:
             ch = docs[i]
+            # Filter: never return a chunk that exactly equals the query text
+            if ch.text == qnorm:
+                continue
             items.append(
                 RetrievalItem(
                     type="chunk",
@@ -160,6 +186,8 @@ class KeywordBaseline(MemorySystem):
                     scores={"bm25": float(s)},
                 )
             )
+            if len(items) >= max(1, top_k):
+                break
 
         latency = (time.perf_counter() - t0) * 1000.0
         logger.info(f"[kb.retrieve] results={len(items)} conv={conv_id} latency_ms={latency:.1f}")
