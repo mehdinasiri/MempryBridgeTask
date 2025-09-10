@@ -51,13 +51,12 @@ def load_config():
         "MB_TOP_K": int(os.getenv("MB_TOP_K", "5")),
         "MB_RESULTS_DIR": os.getenv("MB_RESULTS_DIR", "./benchmark/results"),
         "SEED": int(os.getenv("SEED", "42")),
-        "LOG_LEVEL": os.getenv("LOG_LEVEL", "INFO"),
     }
 
     # Apply seed globally
     set_seed(cfg["SEED"])
 
     # Initialize logging
-    init_logger(level=cfg["LOG_LEVEL"])
+    init_logger()
 
     return cfg
