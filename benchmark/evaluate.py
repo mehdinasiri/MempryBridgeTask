@@ -1,14 +1,17 @@
+#!/usr/bin/env python3
 # benchmark/evaluate.py
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
 import time
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 
 # Make sure project root is on sys.path if run as a script
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,28 +26,35 @@ from ranx import Qrels, Run, evaluate as ranx_evaluate
 from memory.keyword_baseline import KeywordBaseline
 from memory.vector_memory import VectorMemory
 from memory.graph_memory import GraphMemory
-from memory.third_party.mem0_adapter import Mem0Memory
-from memory.third_party.llamaindex_adapter import LlamaIndexMemory
+
+try:
+    from memory.third_party.mem0_adapter import Mem0Memory
+except Exception:
+    Mem0Memory = None
+try:
+    from memory.third_party.llamaindex_adapter import LlamaIndexMemory
+except Exception:
+    LlamaIndexMemory = None
 
 
-# ---- small helpers ----
+# ---------------- small helpers ----------------
 
 def norm(s: str) -> str:
     return (s or "").strip().lower()
 
 
+def _stable_id(parts: List[str]) -> str:
+    """Deterministic id for qrels/run doc ids across processes."""
+    h = hashlib.sha1("::".join(parts).encode("utf-8")).hexdigest()
+    return h
+
+
 def load_dataset(path: Path) -> List[Dict[str, Any]]:
-    """
-    Robust loader that supports:
-      1) JSONL (one object per line)
-      2) A single JSON array of objects
-      3) Concatenated pretty-printed JSON objects (brace-balanced stream)
-    """
     txt = path.read_text(encoding="utf-8").strip()
     if not txt:
         return []
 
-    # Try as a whole JSON value first (array)
+    # JSON array
     try:
         obj = json.loads(txt)
         if isinstance(obj, list):
@@ -52,7 +62,7 @@ def load_dataset(path: Path) -> List[Dict[str, Any]]:
     except Exception:
         pass
 
-    # Try JSONL (one object per non-empty line)
+    # JSONL
     items: List[Dict[str, Any]] = []
     ok = True
     for line in txt.splitlines():
@@ -67,7 +77,7 @@ def load_dataset(path: Path) -> List[Dict[str, Any]]:
     if ok and items:
         return items
 
-    # Fallback: concatenated objects (brace counting)
+    # Concatenated objects
     items = []
     buf = []
     depth = 0
@@ -93,32 +103,21 @@ def load_dataset(path: Path) -> List[Dict[str, Any]]:
                     chunk = "".join(buf).strip()
                     items.append(json.loads(chunk))
                     buf.clear()
-
     if not items:
-        raise ValueError(f"Could not parse dataset at {path}. Make sure it is JSONL, a JSON array, or concatenated JSON objects.")
+        raise ValueError(f"Could not parse dataset at {path}")
     return items
 
 
+# ---------------- qrels/run & predictions ----------------
+
 def build_qrels_and_run_for_query(
-        conv_id: str,
-        question_id: str,
-        expected: str,
-        relevant_texts: List[str],
-        retrieved: List[Dict[str, Any]],
-        k: int,
+    conv_id: str,
+    question_id: str,
+    expected: str,
+    relevant_texts: List[str],
+    retrieved: List[Dict[str, Any]],
+    k: int,
 ) -> Tuple[Dict[str, Dict[str, int]], Dict[str, Dict[str, float]]]:
-    """
-    Convert one query's retrieved items into ranx-compatible qrels & run.
-
-    qrels: {qid: {doc_id: relevance}}
-    run:   {qid: {doc_id: score}}
-
-    Heuristic:
-      - doc_id is formed from item.id if present, otherwise a stable hash of (type|subject|predicate|object|text)
-      - relevant if:
-          a) expected string appears in item.text OR item.object, or
-          b) any relevant_texts string appears in item.text
-    """
     qid = f"{conv_id}::{question_id}"
     qrels: Dict[str, Dict[str, int]] = {qid: {}}
     run: Dict[str, Dict[str, float]] = {qid: {}}
@@ -129,23 +128,20 @@ def build_qrels_and_run_for_query(
     def make_doc_id(it: Dict[str, Any], idx: int) -> str:
         if it.get("id"):
             return str(it["id"])
-        # Stable synthetic id
         parts = [
-            it.get("type") or "",
-            it.get("subject") or "",
-            it.get("predicate") or "",
-            it.get("object") or "",
-            it.get("text") or "",
+            str(it.get("type") or ""),
+            str(it.get("subject") or ""),
+            str(it.get("predicate") or ""),
+            str(it.get("object") or ""),
+            str(it.get("text") or ""),
         ]
-        j = "::".join(parts)
-        return f"{hash(j)}_{idx}"
+        return f"{_stable_id(parts)}_{idx}"
 
     for idx, it in enumerate(retrieved[: max(k, 1)]):
         doc_id = make_doc_id(it, idx)
         score = float(it.get("score", 0.0))
         run[qid][doc_id] = score
 
-        # relevance check
         text_l = norm(it.get("text") or "")
         obj_l = norm(it.get("object") or "")
         is_rel = False
@@ -162,121 +158,46 @@ def build_qrels_and_run_for_query(
 
 
 def predict_answer_from_items(items: List[Dict[str, Any]]) -> str:
-    """
-    Very simple "answer picker":
-      - If top item is a fact, return its 'object'
-      - Else return its 'text'
-    """
     if not items:
         return ""
     top = items[0]
-    if top.get("type") == "fact":
+    if (top.get("type") or "") == "fact":
         return norm(top.get("object", ""))
     return norm(top.get("text", ""))
 
 
-def _fmt_num(x, nd=3):
-    try:
-        return f"{float(x):.{nd}f}"
-    except Exception:
-        return str(x)
+# ---------------- system runner ----------------
 
+@dataclass
+class _PerQuery:
+    qid: str
+    scenario: str
+    difficulty: str
+    em: float
+    hit_at_k: float
+    rank: Optional[int]
+    retrieved_count: int
+    latency_ms: float
+    pred: str
 
-def _agg_rows(rows: List[Dict[str, Any]], metrics_cols: List[str], count_col="count"):
-    if not rows:
-        return {}
-    out = {count_col: len(rows)}
-    for m in metrics_cols:
-        vals = [float(r.get(m, 0.0)) for r in rows]
-        out[m] = sum(vals) / max(len(vals), 1)
-    return out
-
-
-def _group_agg(rows: List[Dict[str, Any]], key: str, metrics_cols: List[str]):
-    groups = defaultdict(list)
-    for r in rows:
-        groups[r.get(key, "unknown")].append(r)
-    table = []
-    for g in sorted(groups.keys()):
-        agg = _agg_rows(groups[g], metrics_cols)
-        agg[key] = g
-        table.append(agg)
-    return table
-
-
-def _print_table(title, rows, metrics_cols, extra_cols=None, sys_name=None):
-    if sys_name:
-        print(f"\n== {title} (system={sys_name}) ==")
-    else:
-        print(f"\n== {title} ==")
-    if not rows:
-        print("(no data)")
-        return
-    cols = (extra_cols or []) + ["count"] + metrics_cols
-    header = "  ".join(f"{c:>12}" for c in cols)
-    print(header)
-    print("-" * len(header))
-    for r in rows:
-        line_vals = []
-        for c in cols:
-            v = r.get(c, "")
-            if c in {"scenario", "difficulty"}:
-                line_vals.append(f"{str(v):>12}")
-            elif c == "count":
-                try:
-                    line_vals.append(f"{int(v):>12d}")
-                except Exception:
-                    line_vals.append(f"{str(v):>12}")
-            else:
-                line_vals.append(f"{_fmt_num(v):>12}")
-        print("  ".join(line_vals))
-
-
-def print_per_system_reports(results_by_system: Dict[str, Dict[str, Any]]):
-    metric_cols = ["EM", "f1@K", "hits@K", "map", "mrr", "ndcg@K", "precision@K", "recall@K"]
-    for sys_name, pack in results_by_system.items():
-        macro = pack.get("macro", {})
-        perq = pack.get("per_query", [])
-
-        # Overall
-        overall_row = [{
-            "count": macro.get("count", len(perq)),
-            **{m: macro.get(m, 0.0) for m in metric_cols}
-        }]
-        _print_table("Overall", overall_row, metrics_cols=metric_cols, sys_name=sys_name)
-
-        # By scenario
-        by_scen = _group_agg(perq, key="scenario", metrics_cols=metric_cols)
-        _print_table("By scenario", by_scen, metrics_cols=metric_cols, extra_cols=["scenario"], sys_name=sys_name)
-
-        # By difficulty
-        by_diff = _group_agg(perq, key="difficulty", metrics_cols=metric_cols)
-        _print_table("By difficulty", by_diff, metrics_cols=metric_cols, extra_cols=["difficulty"], sys_name=sys_name)
-
-
-# ---- system runner ----
 
 def run_system(
-        system_name: str,
-        dataset: List[Dict[str, Any]],
-        *,
-        top_k: int,
-        index_backend: str,
-        collection_or_table: str,
-        vector_db_path: str,
-        graph_db_path: str,
-        mem0_chroma_path: str,
-        llama_chroma_path: str,
-        restrict_to_conv: bool,
-        verbose: bool,
-        print_k: int,
+    system_name: str,
+    dataset: List[Dict[str, Any]],
+    *,
+    top_k: int,
+    index_backend: str,
+    collection_or_table: str,
+    vector_db_path: str,
+    graph_db_path: str,
+    mem0_chroma_path: str,
+    llama_chroma_path: str,
+    restrict_to_conv: bool,
+    verbose: bool,
+    print_k: int,
 ) -> Dict[str, Any]:
-    """
-    Execute one memory system over the dataset and produce:
-      - macro ranx metrics + EM
-      - per-query rows for group aggregation
-    """
-    # 1) Construct memory
+
+    # 1) Init memory
     if system_name == "keyword":
         mem = KeywordBaseline()
     elif system_name == "vector":
@@ -288,26 +209,21 @@ def run_system(
             restrict_to_conv=restrict_to_conv,
         )
     elif system_name == "graph":
-        mem = GraphMemory(
-            name="graph_memory",
-            index_backend=index_backend,
-            collection_or_table=collection_or_table,
-            persist_path=graph_db_path,
-            graph_db_path=os.path.join(os.path.dirname(graph_db_path), "graph_evaluate.sqlite"),
-            restrict_to_conv=restrict_to_conv,
-        )
+        mem = GraphMemory(name="graph_memory", restrict_to_conv=restrict_to_conv)
     elif system_name == "mem0":
-        # Mem0 adapter; reads models/base_url/api_key from src.config.load_config()
+        if Mem0Memory is None:
+            raise RuntimeError("Mem0 not available")
         mem = Mem0Memory(
-            name="mem0_memory_eval",
+            name="mem0_eval",
             collection=collection_or_table,
             restrict_to_conv=restrict_to_conv,
             chroma_path=mem0_chroma_path,
         )
     elif system_name == "llama":
-        # LlamaIndex adapter; reads models/base_url/api_key from src.config.load_config()
+        if LlamaIndexMemory is None:
+            raise RuntimeError("Llama not available")
         mem = LlamaIndexMemory(
-            name="llamaindex_memory_eval",
+            name="llama_eval",
             collection=collection_or_table,
             restrict_to_conv=restrict_to_conv,
             chroma_path=llama_chroma_path,
@@ -317,34 +233,41 @@ def run_system(
 
     logger.info(f"Running system={system_name}")
 
-    # 2) Build global qrels & run accumulators
     all_qrels: Dict[str, Dict[str, int]] = {}
     all_run: Dict[str, Dict[str, float]] = {}
     per_query_rows: List[Dict[str, Any]] = []
+    diag_rows: List[_PerQuery] = []
 
-    for c in dataset:
-        conv_id = c.get("conversation_id") or c.get("id") or "unknown_conv"
+    for ci, c in enumerate(dataset):
+
+        conv_id = c.get("conversation_id") or c.get("id") or f"conv_{ci}"
         scenario = c.get("scenario", "unknown")
         difficulty = c.get("difficulty", "unknown")
 
-        # Ingest turns
         for i, t in enumerate(c.get("turns", []), start=1):
-            mem.add_turn(conv_id, i, t.get("role", ""), t.get("content", ""))
+            while True:
+                try:
+                    mem.add_turn(conv_id, i, t.get("role", ""), t.get("content", ""))
 
-        # Evaluate questions for this conversation
+                    break
+                except Exception as e:
+                    print(e)
+                    time.sleep(10)
+
         for qi, ev in enumerate(c.get("eval", []), start=1):
-            q = ev.get("question", "")
-            expected = ev.get("expected_answer", "")
+            q = (ev.get("question") or "").strip()
+            expected = (ev.get("expected_answer") or "").strip()
             relevant_texts = ev.get("relevant_texts", []) or []
+
+            if not q:
+                continue
 
             start = time.perf_counter()
             out = mem.retrieve(conv_id, q, top_k=top_k)
             latency_ms = (time.perf_counter() - start) * 1000.0
-            _ = latency_ms  # reserved for future latency reporting
 
-            # Normalize retrieved items into a simpler shape for use here
             results = out.get("results", [])
-            simple_items = []
+            simple_items: List[Dict[str, Any]] = []
             for it in results:
                 simple_items.append({
                     "type": it.get("type"),
@@ -357,19 +280,6 @@ def run_system(
                     "source": it.get("source"),
                 })
 
-            # Verbose: per-query printout
-            if verbose:
-                print(f"\n[{system_name}] conv={conv_id}")
-                print(f"Q: {q}")
-                pred = predict_answer_from_items(simple_items)
-                print(f"gold: {expected!r}   pred: {pred!r}   EM={1 if norm(expected) == pred else 0}")
-                for rank, it in enumerate(simple_items[:max(print_k, 1)], start=1):
-                    label = it["type"] or "item"
-                    shown = it[
-                        "text"] if label != "fact" else f"{it.get('subject')} | {it.get('predicate')} | {it.get('object')}"
-                    print(f"  #{rank:02d}  {label:<10} score={it['score']:.4f}  {shown}")
-
-            # qrels & run for this one query
             qrels_q, run_q = build_qrels_and_run_for_query(
                 conv_id=conv_id,
                 question_id=str(qi),
@@ -381,33 +291,51 @@ def run_system(
             all_qrels.update(qrels_q)
             all_run.update(run_q)
 
-            # per-query row (for grouping/averaging); EM + placeholders (ranx macro done later)
+            qid = f"{conv_id}::{qi}"
+            pred = predict_answer_from_items(simple_items)
+            em = 1.0 if norm(expected) == pred else 0.0
+
+            # success log per query
+            logger.success(
+                f"[{system_name}] conv={conv_id} q{qi}: "
+                f"Q='{q}' | gold='{expected}' | pred='{pred}' | EM={em} | latency={latency_ms:.1f}ms"
+            )
+
+            rank = None
+            hit = 0.0
+            qrels_this = qrels_q[qid]
+            ranked_ids = sorted(run_q[qid].items(), key=lambda x: x[1], reverse=True)
+            for r_idx, (doc_id, _score) in enumerate(ranked_ids, start=1):
+                if qrels_this.get(doc_id, 0) > 0 and rank is None:
+                    rank = r_idx
+                    if r_idx <= top_k:
+                        hit = 1.0
+                    break
+
+            diag_rows.append(_PerQuery(
+                qid=qid, scenario=scenario, difficulty=difficulty, em=em,
+                hit_at_k=hit, rank=rank, retrieved_count=len(simple_items),
+                latency_ms=latency_ms, pred=pred
+            ))
+
             per_query_rows.append({
+                "qid": qid,
                 "scenario": scenario,
                 "difficulty": difficulty,
-                "EM": 1.0 if norm(expected) == predict_answer_from_items(simple_items) else 0.0,
-                # The following are filled later as macro (groupwise via re-evaluate)
+                "EM": em,
                 "f1@K": 0.0, "hits@K": 0.0, "map": 0.0, "mrr": 0.0,
                 "ndcg@K": 0.0, "precision@K": 0.0, "recall@K": 0.0,
             })
 
-    # 3) Compute ranx metrics for ALL queries (macro)
+    # Ranx metrics
     qrels_all = Qrels(all_qrels)
     run_all = Run(all_run)
-
-    # Note: the k used for @K metrics is the same as top_k in args
     metrics = {
-        f"precision@{top_k}",
-        f"recall@{top_k}",
-        f"hits@{top_k}",
-        f"f1@{top_k}",
-        "map",
-        "mrr",
-        f"ndcg@{top_k}",
+        f"precision@{top_k}", f"recall@{top_k}", f"hits@{top_k}", f"f1@{top_k}",
+        "map", "mrr", f"ndcg@{top_k}",
     }
     ranx_scores = ranx_evaluate(qrels_all, run_all, metrics=metrics)
 
-    # 4) Compute macro EM
     macro_em = sum(r["EM"] for r in per_query_rows) / max(len(per_query_rows), 1)
 
     macro = {
@@ -420,93 +348,34 @@ def run_system(
         "map": ranx_scores.get("map", 0.0),
         "mrr": ranx_scores.get("mrr", 0.0),
         "ndcg@K": ranx_scores.get(f"ndcg@{top_k}", 0.0),
+        "avg_latency_ms": sum(d.latency_ms for d in diag_rows) / max(len(diag_rows), 1),
+        "avg_retrieved": sum(d.retrieved_count for d in diag_rows) / max(len(diag_rows), 1),
     }
-
-    # 5) Groupwise macro prints (scenario, difficulty)
-    def group_macro(group_key: str) -> List[Dict[str, Any]]:
-        rows = []
-        groups = defaultdict(list)
-        created_qids = list(qrels_all.qrels.keys())
-
-        for idx, pq in enumerate(per_query_rows):
-            g = pq.get(group_key, "unknown")
-            groups[g].append(created_qids[idx])
-
-        for g, qids in groups.items():
-            # slice qrels/run by qids
-            sub_qrels = {qid: qrels_all.qrels[qid] for qid in qids}
-            sub_run = {qid: run_all.run[qid] for qid in qids if qid in run_all.run}
-            if not sub_run:
-                rows.append({
-                    group_key: g, "count": len(qids),
-                    "EM": sum(per_query_rows[i]["EM"] for i, q in enumerate(created_qids) if q in qids) / max(len(qids),
-                                                                                                              1),
-                    "precision@K": 0.0, "recall@K": 0.0, "hits@K": 0.0, "f1@K": 0.0,
-                    "map": 0.0, "mrr": 0.0, "ndcg@K": 0.0
-                })
-                continue
-            scores = ranx_evaluate(Qrels(sub_qrels), Run(sub_run), metrics=metrics)
-            em = sum(per_query_rows[i]["EM"] for i, q in enumerate(created_qids) if q in qids) / max(len(qids), 1)
-            rows.append({
-                group_key: g, "count": len(qids),
-                "EM": em,
-                "precision@K": scores.get(f"precision@{top_k}", 0.0),
-                "recall@K": scores.get(f"recall@{top_k}", 0.0),
-                "hits@K": scores.get(f"hits@{top_k}", 0.0),
-                "f1@K": scores.get(f"f1@{top_k}", 0.0),
-                "map": scores.get("map", 0.0),
-                "mrr": scores.get("mrr", 0.0),
-                "ndcg@K": scores.get(f"ndcg@{top_k}", 0.0),
-            })
-
-        # pretty print like your earlier style:
-        print(f"\n== Overall by system ({system_name}) ==")
-        print(
-            f"count={macro['count']}  EM={_fmt_num(macro['EM'])}  f1@{top_k}={_fmt_num(macro['f1@K'])}  hits@{top_k}={_fmt_num(macro['hits@K'])}  map={_fmt_num(macro['map'])}  mrr={_fmt_num(macro['mrr'])}  ndcg@{top_k}={_fmt_num(macro['ndcg@K'])}  precision@{top_k}={_fmt_num(macro['precision@K'])}  recall@{top_k}={_fmt_num(macro['recall@K'])}")
-        print(f"\n== By system × {group_key} ({system_name}) ==")
-        for r in rows:
-            print(
-                f"{group_key}={r[group_key]:<12} count={r['count']:>3}  EM={_fmt_num(r['EM'])}  f1@{top_k}={_fmt_num(r['f1@K'])}  hits@{top_k}={_fmt_num(r['hits@K'])}  map={_fmt_num(r['map'])}  mrr={_fmt_num(r['mrr'])}  ndcg@{top_k}={_fmt_num(r['ndcg@K'])}  precision@{top_k}={_fmt_num(r['precision@K'])}  recall@{top_k}={_fmt_num(r['recall@K'])}")
-
-        return rows
-
-    # Produce compact prints like your earlier style:
-    _ = group_macro("scenario")
-    _ = group_macro("difficulty")
 
     return {
         "macro": macro,
         "per_query": per_query_rows,
+        "diagnostics": [d.__dict__ for d in diag_rows],
     }
 
 
-# ---- CLI ----
+# ---------------- CLI ----------------
 
 def parse_args():
     ap = argparse.ArgumentParser(description="Evaluate memory systems on conversation datasets.")
-    ap.add_argument("--data",default="datasets/conversations.jsonl", help="Path to JSON/JSONL dataset.")
-    ap.add_argument(
-        "--compare",
-        default="keyword,vector,graph",
-        help="Comma-separated systems: keyword,vector,graph,mem0,llama",
-    )
-    ap.add_argument("--top_k", type=int, default=3, help="Top-K to retrieve/evaluate.")
-    ap.add_argument("--index_backend", default="chroma", choices=["chroma", "lancedb"],
-                    help="Vector backend for vector/graph memories.")
-    ap.add_argument("--collection_or_table", default="memorybridge_facts",
-                    help="Collection/table name for vector stores.")
-    ap.add_argument("--vector_db_path", default=".memdb/vector_chroma", help="Persist dir for VectorMemory.")
-    ap.add_argument("--graph_db_path", default=".memdb/graph_chroma",
-                    help="Persist dir for GraphMemory's internal vector index.")
-    ap.add_argument("--mem0_chroma_path", default=".memdb/mem0_chroma_eval",
-                    help="Persist dir for Mem0Memory's Chroma store.")
-    ap.add_argument("--llama_chroma_path", default=".memdb/llamaindex_chroma_eval",
-                    help="Persist dir for LlamaIndexMemory's Chroma store.")
-    ap.add_argument("--restrict_to_conv", action="store_true", help="Scope retrieval to the same conversation.")
-    ap.add_argument("--verbose", action="store_true", help="Print per-query details.")
-    ap.add_argument("--print_k", type=int, default=5,
-                    help="How many retrieved items to print per query when --verbose.")
-    ap.add_argument("--results_file", default=None, help="Optional path to save results as JSON.")
+    ap.add_argument("--data", default="datasets/conversations.jsonl")
+    ap.add_argument("--compare", default="keyword,vector,graph")
+    ap.add_argument("--top_k", type=int, default=5)
+    ap.add_argument("--index_backend", default="chroma", choices=["chroma", "lancedb"])
+    ap.add_argument("--collection_or_table", default="memorybridge_facts")
+    ap.add_argument("--vector_db_path", default=".memdb/vector_chroma")
+    ap.add_argument("--graph_db_path", default=".memdb/graph_chroma")
+    ap.add_argument("--mem0_chroma_path", default=".memdb/mem0_chroma_eval")
+    ap.add_argument("--llama_chroma_path", default=".memdb/llamaindex_chroma_eval")
+    ap.add_argument("--restrict_to_conv", action="store_true")
+    ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("--print_k", type=int, default=5)
+    ap.add_argument("--results_file", default="results.json")
     return ap.parse_args()
 
 
@@ -532,15 +401,15 @@ def main():
             print_k=args.print_k,
         )
 
-    # Final clean, per-system reports (overall + scenario + difficulty)
-    print_per_system_reports(results_by_system)
-    # Save results to file if requested
+    for sys_name, res in results_by_system.items():
+        macro = res["macro"]
+        logger.info(f"\nSystem={sys_name} Results:")
+        logger.info(json.dumps(macro, indent=2))
 
     if args.results_file:
-        import json
-    with open(args.results_file, "w", encoding="utf-8") as f:
-        json.dump(results_by_system, f, indent=2, ensure_ascii=False)
-    logger.info(f"Saved results to {args.results_file}")
+        with open(args.results_file, "w", encoding="utf-8") as f:
+            json.dump(results_by_system, f, indent=2, ensure_ascii=False)
+        logger.info(f"Saved results to {args.results_file}")
 
 
 if __name__ == "__main__":
