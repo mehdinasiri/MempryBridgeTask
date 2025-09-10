@@ -41,7 +41,6 @@ python -m demo.demo_llamaindex_memory
 python -m demo.demo_mem0_memory
 python -m demo.demo_vector_memory
 ```
-Each script demonstrates different memory or baseline functionalities. Review the script comments for details on their usage.
 
 ## Running Dataset Generation and Evaluation
 
@@ -50,8 +49,6 @@ The `benchmark` folder provides tools to create datasets and evaluate different 
 ### 1. Generate a Dataset
 
 You can generate synthetic conversation datasets for benchmarking:
-
-Here’s the corrected multi-line command with the aliases you just set up:
 
 ```bash
 python benchmark/generate_dataset.py \
@@ -78,7 +75,6 @@ python benchmark/evaluate.py \
   --index_backend chroma \
   --collection_or_table memorybridge_facts \
   --vector_db_path .memdb/vector_chroma \
-  --graph_db_path .memdb/graph_chroma \
   --mem0_chroma_path .memdb/mem0_chroma_eval \
   --llama_chroma_path .memdb/llamaindex_chroma_eval \
   --results_file benchmark/results/results.json \
@@ -94,7 +90,7 @@ python benchmark/evaluate.py \
 * `--top_k` → how many results to retrieve for evaluation (default: 5).
 * `--index_backend` → vector DB backend (`chroma` or `lancedb`).
 * `--collection_or_table` → collection/table name for DB storage.
-* `--vector_db_path`, `--graph_db_path`, `--mem0_chroma_path`, `--llama_chroma_path` → local DB storage paths.
+* `--vector_db_path`, `--mem0_chroma_path`, `--llama_chroma_path` → local DB storage paths.
 * `--restrict_to_conv` → restrict evaluation to facts within the same conversation.
 * `--verbose` → print more logs while running.
 * `--print_k` → how many retrieved items to show when printing examples.
@@ -130,7 +126,6 @@ docker compose up --build
 
 The API will be available at [http://localhost:8888](http://localhost:8888) once the service is running.
 
-Add this note right after the Docker Compose command in your `README.md`.
 ## Project Structure
 
 ```
