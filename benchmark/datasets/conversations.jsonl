@@ -1,630 +1,2441 @@
 {
-  "conversation_id": "SIMPLE_EASY_42_000",
+  "conversation_id": "SIMPLE_EASY_7_000",
   "scenario": "simple",
   "difficulty": "easy",
   "noise_tags": [],
   "turns": [
     {
       "role": "user",
-      "content": "Hi, I'm really into music. My favorite genre is indie folk."
+      "content": "My hometown is Portland, Oregon."
     },
     {
       "role": "assistant",
-      "content": "That's interesting! Indie folk often has a very unique sound. Do you have any favorite artists?"
+      "content": "Portland is a great place."
     },
     {
       "role": "user",
-      "content": "Yes, I really like Fleet Foxes and Bon Iver. Their harmonies are incredible."
+      "content": "I agree. I'm planning my next trip."
     },
     {
       "role": "assistant",
-      "content": "Both excellent choices. Their music definitely evokes a certain atmosphere."
+      "content": "Where are you thinking of going?"
     },
     {
       "role": "user",
-      "content": "Agreed. Speaking of music, what's a good way to discover new artists in that genre?"
-    },
-    {
-      "role": "assistant",
-      "content": "There are several ways! You could try curated playlists on streaming services, explore music blogs, or even check out live local performances."
-    },
-    {
-      "role": "user",
-      "content": "That sounds like a good plan. By the way, what did I say my favorite music genre was?"
+      "content": "I'm still deciding. What's my hometown?"
     }
   ],
   "eval": [
     {
-      "question": "what did i say my favorite music genre was?",
-      "expected_answer": "indie folk",
+      "question": "what's my hometown?",
+      "expected_answer": "portland oregon",
       "relevant_texts": [
-        "my favorite genre is indie folk."
-      ],
-      "subject_hint": "user's favorite music genre"
+        "my hometown is portland, oregon"
+      ]
     }
   ]
 }
 {
-  "conversation_id": "SIMPLE_MODERATE_42_000",
+  "conversation_id": "SIMPLE_EASY_7_001",
   "scenario": "simple",
-  "difficulty": "moderate",
-  "noise_tags": [
-    "typos",
-    "coreference",
-    "chit-chat"
-  ],
-  "turns": [
-    {
-      "role": "assistant",
-      "content": "That sounds like a fascinating and unique hobby, Elara! Do you focus on any particular era or type of train, or just whatever catches your eye?"
-    },
-    {
-      "role": "user",
-      "content": "Not really, just whatever catches my eye. Mostly vintage steam engines, though. It's really quite relaxing and a nice escape."
-    },
-    {
-      "role": "assistant",
-      "content": "I can imagine. There's something very satisfying about detailed craftsmanship and seeing a project come to life."
-    },
-    {
-      "role": "user",
-      "content": "Speaking of relaxing, I'm thinking of starting to learn calligraphy too. Just for fun, you know."
-    },
-    {
-      "role": "assistant",
-      "content": "Calligraphy is a beautiful art form. Are you thinking of a specific style, like Copperplate or Spencerian, or more modern lettering?"
-    },
-    {
-      "role": "user",
-      "content": "Hmm, not sure yet. Just saw some cool stuff online. I'll probaly get a starter kit next week and see how it goes."
-    },
-    {
-      "role": "assistant",
-      "content": "That's a great way to begin. There are many excellent resources online for beginners, from tutorials to practice sheets."
-    },
-    {
-      "role": "user",
-      "content": "Oh, by the way, I had a really good coffee this morning. Best espresso I've had in ages from that new place downtown."
-    },
-    {
-      "role": "assistant",
-      "content": "Nice! A good coffee can really set the tone for the day. Glad you enjoyed it."
-    },
-    {
-      "role": "user",
-      "content": "Definitely. Anyway, I was just wondering, you know, about that thing I mentioned earlier..."
-    },
-    {
-      "role": "assistant",
-      "content": "Which thing were you referring to?"
-    },
-    {
-      "role": "user",
-      "content": "What was that hobby I said I did on weekends?"
-    }
-  ],
-  "eval": [
-    {
-      "question": "What was that hobby I said I did on weekends?",
-      "expected_answer": "building elaborate miniature train sets",
-      "relevant_texts": [
-        "i spend my weekends building elaborate miniature train sets."
-      ],
-      "subject_hint": "user"
-    }
-  ]
-}
-{
-  "conversation_id": "SIMPLE_COMPLEX_42_000",
-  "scenario": "simple",
-  "difficulty": "complex",
-  "noise_tags": [
-    "emoji",
-    "multilingual",
-    "coreference",
-    "cross_session",
-    "typos"
-  ],
-  "turns": [
-    {
-      "role": "user",
-      "content": "Hey! Just chilling, listening to some tunes. Btw, my absolute favorite type of music to unwind with is atmospheric post-rock. It's just... sublime. ✨"
-    },
-    {
-      "role": "assistant",
-      "content": "That sounds intriguing! Atmospheric post-rock, I haven't explored that much. Do you have any specific bands or albums you'd recommend for a beginner?"
-    },
-    {
-      "role": "user",
-      "content": "Oh, definitely! 'Explosions in the Sky' is a classic. Or 'Sigur Rós' for something more ethereal. Their soundscapes are just mind-blowing. 🤯"
-    },
-    {
-      "role": "assistant",
-      "content": "Great suggestions, thank you! I'll add them to my listen list. Speaking of lists, did you manage to finish that report for work yesterday?"
-    },
-    {
-      "role": "user",
-      "content": "Ugh, the report. Almost, I got stuck on the data visualization part. Too many options! 😅 It's always the last 10% that takes 90% of the effort, right?"
-    },
-    {
-      "role": "assistant",
-      "content": "Absolutely, that's often the case. Sometimes a fresh perspective helps. Perhaps a walk or a short break could spark some inspiration for those visuals?"
-    },
-    {
-      "role": "user",
-      "content": "Good idea! I went for a walk earlier, actually. Saw this super cute corgi. Made my day. 😊 Anyway, I'll tackle the report again after dinner. Gotta eat something first! 🍕"
-    },
-    {
-      "role": "assistant",
-      "content": "A cute corgi sighting is definitely a mood booster! What are you thinking of having for dinner?"
-    },
-    {
-      "role": "user",
-      "content": "Hmm, not sure yet. Maybe some pasta? Or perhaps just a quick sandwich. I'm feeling a bit lazy tonight. It's been a long day, you know? C'est la vie! 😴"
-    },
-    {
-      "role": "assistant",
-      "content": "Pasta sounds like a good comfort food, especially after a long day. Take it easy!"
-    },
-    {
-      "role": "user",
-      "content": "(end of session)/(new session)"
-    },
-    {
-      "role": "user",
-      "content": "Morning! ☕️ Just checking in. Got the report done eventually! Phew. Feeling productive now. What's on your agenda today?"
-    },
-    {
-      "role": "assistant",
-      "content": "Good morning! That's fantastic news about the report! My agenda is quite full today, assisting various users with their inquiries and tasks. How's your day shaping up so far?"
-    },
-    {
-      "role": "user",
-      "content": "Pretty good! Just sorting through emails. Thinking about planning a weekend trip. Maybe a quiet cabin upstate. Need a proper digital detox. 🌲"
-    },
-    {
-      "role": "assistant",
-      "content": "A digital detox sounds wonderful and much-needed. A quiet cabin would be perfect for that. Have you picked a specific area yet?"
-    },
-    {
-      "role": "user",
-      "content": "Not yet, still browsing. Oh, by the way, I was just curious... earlier you mentioned my perfurred music type, what was it again? I'm drawing a blank! 🎶"
-    }
-  ],
-  "eval": [
-    {
-      "question": "earlier you mentioned my perfurred music type, what was it again? I'm drawing a blank! 🎶",
-      "expected_answer": "atmospheric post-rock",
-      "relevant_texts": [
-        "my absolute favorite type of music to unwind with is atmospheric post-rock"
-      ],
-      "subject_hint": "user"
-    }
-  ]
-}
-{
-  "conversation_id": "UPDATE_EASY_42_000",
-  "scenario": "update",
-  "difficulty": "easy",
-  "noise_tags": [],
-  "turns": [
-    {
-      "role": "assistant",
-      "content": "Classical music is very rich. Do you have a favorite composer?"
-    },
-    {
-      "role": "user",
-      "content": "Not really, but I've actually gotten into jazz lately. So my primary genre is now jazz."
-    },
-    {
-      "role": "assistant",
-      "content": "Jazz is a fantastic genre with a lot of variety."
-    },
-    {
-      "role": "user",
-      "content": "What's my main music genre now?"
-    }
-  ],
-  "eval": [
-    {
-      "question": "What's my main music genre now?",
-      "expected_answer": "jazz",
-      "relevant_texts": [
-        "my primary genre is now jazz",
-        "i've actually gotten into jazz lately"
-      ],
-      "subject_hint": "user"
-    }
-  ]
-}
-{
-  "conversation_id": "UPDATE_MODERATE_42_000",
-  "scenario": "update",
-  "difficulty": "moderate",
-  "noise_tags": [
-    "filler",
-    "coreference",
-    "paraphrase"
-  ],
-  "turns": [
-    {
-      "role": "user",
-      "content": "Hey there! I was just thinking about dinner plans, and it got me thinking about my favorite cuisines. I'd say my top pick has always been Thai food, especially the really spicy curries.",
-      "turn_id": 0
-    },
-    {
-      "role": "assistant",
-      "content": "Thai curries are amazing! Do you prefer green, red, or yellow curry, or something else entirely?",
-      "turn_id": 1
-    },
-    {
-      "role": "user",
-      "content": "Oh, definitely green curry. And there's a place called 'Bangkok Bites' near my office that makes the best one. It's my usual Friday night treat.",
-      "turn_id": 2
-    },
-    {
-      "role": "assistant",
-      "content": "Bangkok Bites, sounds like a great Friday tradition! It's good to have a reliable spot for your favorite.",
-      "turn_id": 3
-    },
-    {
-      "role": "user",
-      "content": "Totally. Anyway, I had a thought. My culinary preferences have actually shifted a bit recently. I've found myself completely captivated by Vietnamese food.",
-      "turn_id": 4
-    },
-    {
-      "role": "assistant",
-      "content": "Vietnamese cuisine is incredibly diverse and flavorful! What aspects of it have you found most appealing?",
-      "turn_id": 5
-    },
-    {
-      "role": "user",
-      "content": "Well, the fresh herbs, for one. And the pho, oh my goodness, the pho. I could eat it every day. I've also really started to appreciate banh mi sandwiches.",
-      "turn_id": 6
-    },
-    {
-      "role": "assistant",
-      "content": "Pho and banh mi are excellent choices. They really showcase the fresh and vibrant flavors of Vietnamese cooking.",
-      "turn_id": 7
-    },
-    {
-      "role": "user",
-      "content": "Yeah, they really do. I still enjoy Thai, don't get me wrong, but Vietnamese has definitely taken the lead in my book now.",
-      "turn_id": 8
-    },
-    {
-      "role": "assistant",
-      "content": "It's interesting how our tastes can evolve over time! It's always fun to explore new culinary horizons.",
-      "turn_id": 9
-    },
-    {
-      "role": "user",
-      "content": "Absolutely. So, based on what I've told you, what's my current favorite type of food?",
-      "turn_id": 10
-    }
-  ],
-  "eval": [
-    {
-      "question": "what's my current favorite type of food?",
-      "expected_answer": "vietnamese cuisine",
-      "relevant_texts": [
-        "i've found myself completely captivated by vietnamese food.",
-        "vietnamese has definitely taken the lead in my book now."
-      ],
-      "subject_hint": "user"
-    }
-  ]
-}
-{
-  "conversation_id": "UPDATE_COMPLEX_42_000",
-  "scenario": "update",
-  "difficulty": "complex",
-  "noise_tags": [
-    "emoji",
-    "multilingual",
-    "coreference",
-    "cross_session",
-    "filler"
-  ],
-  "turns": [
-    {
-      "role": "user",
-      "content": "Hey there! Just enjoying a coffee. My absolute favorite place to grab a latte is The Daily Grind. Their almond milk lattes are just *chef's kiss*."
-    },
-    {
-      "role": "assistant",
-      "content": "Sounds delightful! I've heard good things about The Daily Grind. Are you usually a coffee shop regular, or is it more of a weekend treat?"
-    },
-    {
-      "role": "user",
-      "content": "Oh, definitely a regular! I'm practically there every other day after my pottery class. Gotta get that caffeine kick to sculpt, haha. 😊"
-    },
-    {
-      "role": "assistant",
-      "content": "Pottery! That's fascinating. Do you make functional pieces or more artistic sculptures?"
-    },
-    {
-      "role": "user",
-      "content": "A bit of both, actually. Mostly bowls and mugs. Speaking of mugs, I need another one for my collection. The Daily Grind has some cool merch."
-    },
-    {
-      "role": "assistant",
-      "content": "They often do! It's great when a place has a good vibe and good products. What's on your agenda for the rest of the week?"
-    },
-    {
-      "role": "user",
-      "content": "Just work, work, work! Maybe a hike this weekend if the weather holds up. Gotta balance all that sedentary pottery with some movement. 🚶‍♀️"
-    },
-    {
-      "role": "assistant",
-      "content": "That sounds like a good plan. Fresh air is always refreshing. Enjoy your hike if you manage to go!"
-    },
-    {
-      "role": "user",
-      "content": "Thanks! You too. (end of session)/(new session)"
-    },
-    {
-      "role": "assistant",
-      "content": "Welcome back! Hope your week's been good. Anything new or exciting?"
-    },
-    {
-      "role": "user",
-      "content": "Hey! Yeah, things are okay. So, a funny thing happened. You know how I used to rave about The Daily Grind? Well, they've gotten SO crowded lately, it's unbearable. My new go-to, the place that's stolen my heart, is 'Brew Haven'. Their cold brew is next-level, honestly. 💯"
-    },
-    {
-      "role": "assistant",
-      "content": "Oh, a new champion has emerged! Brew Haven, you say? What makes their cold brew so special?"
-    },
-    {
-      "role": "user",
-      "content": "It's just smoother, less acidic, and they have this amazing hazelnut creamer. Plus, the atmosphere is super chill. No fighting for a seat, you know? C'est la vie for the old spot. 😂"
-    },
-    {
-      "role": "assistant",
-      "content": "That's a definite plus – a calm atmosphere makes a big difference. It's interesting how preferences can shift over time."
-    },
-    {
-      "role": "user",
-      "content": "Totally. Gotta adapt! So yeah, Brew Haven it is for me now. Best coffee in town, hands down. ☕"
-    },
-    {
-      "role": "assistant",
-      "content": "Good to know you've found a new favorite! Enjoy your coffee wherever you go."
-    },
-    {
-      "role": "user",
-      "content": "Just out of curiosity, what's my favorite coffee shop now?"
-    }
-  ],
-  "eval": [
-    {
-      "question": "What's my favorite coffee shop now?",
-      "expected_answer": "brew haven",
-      "relevant_texts": [
-        "my new go-to, the place that's stolen my heart, is 'brew haven'.",
-        "so yeah, brew haven it is for me now."
-      ],
-      "subject_hint": "user's favorite coffee shop"
-    }
-  ]
-}
-{
-  "conversation_id": "MULTIHOP_EASY_42_000",
-  "scenario": "multihop",
   "difficulty": "easy",
   "noise_tags": [],
   "turns": [
     {
       "role": "user",
-      "content": "Can you tell me about Liam?"
+      "content": "Hi there. I have two pet cats at home."
     },
     {
       "role": "assistant",
-      "content": "Liam is a talented chef."
+      "content": "That's lovely! Cats are wonderful companions."
     },
     {
       "role": "user",
-      "content": "Where does he work?"
+      "content": "They really are. Do you enjoy pets?"
     },
     {
       "role": "assistant",
-      "content": "He's the head chef at 'The Gilded Spoon' restaurant."
+      "content": "As an AI, I don't have personal feelings, but I can process information about pets!"
     },
     {
       "role": "user",
-      "content": "What city is 'The Gilded Spoon' located in?"
-    },
-    {
-      "role": "assistant",
-      "content": "'The Gilded Spoon' is in Boston, Massachusetts."
-    },
-    {
-      "role": "user",
-      "content": "So, what city does Liam's workplace call home?"
+      "content": "That makes sense. How many pet cats do I have?"
     }
   ],
   "eval": [
     {
-      "question": "So, what city does Liam's workplace call home?",
-      "expected_answer": "boston, massachusetts",
+      "question": "how many pet cats do i have?",
+      "expected_answer": "two",
       "relevant_texts": [
-        "he's the head chef at 'the gilded spoon' restaurant.",
-        "'the gilded spoon' is in boston, massachusetts."
-      ],
-      "subject_hint": "Liam"
+        "i have two pet cats at home"
+      ]
     }
   ]
 }
 {
-  "conversation_id": "MULTIHOP_MODERATE_42_000",
-  "scenario": "multihop",
+  "conversation_id": "SIMPLE_EASY_7_002",
+  "scenario": "simple",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "I really enjoy playing the piano in my free time."
+    },
+    {
+      "role": "assistant",
+      "content": "That's wonderful! The piano is a beautiful instrument."
+    },
+    {
+      "role": "user",
+      "content": "What do I like to do in my free time?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what do i like to do in my free time?",
+      "expected_answer": "playing the piano",
+      "relevant_texts": [
+        "i really enjoy playing the piano in my free time"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_EASY_7_003",
+  "scenario": "simple",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "I really enjoy playing chess in my free time."
+    },
+    {
+      "role": "assistant",
+      "content": "Chess is a fascinating game, isn't it? Do you play online or with a physical board?"
+    },
+    {
+      "role": "user",
+      "content": "Mostly online these days, but I prefer a physical board when I can."
+    },
+    {
+      "role": "assistant",
+      "content": "That makes sense. Online play is convenient, but there's something special about the tactile experience of a real board."
+    },
+    {
+      "role": "user",
+      "content": "What do I enjoy doing in my free time?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what do i enjoy doing in my free time?",
+      "expected_answer": "playing chess",
+      "relevant_texts": [
+        "i really enjoy playing chess in my free time"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_EASY_7_004",
+  "scenario": "simple",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "assistant",
+      "content": "That's lovely! Cats make wonderful companions."
+    },
+    {
+      "role": "user",
+      "content": "They really do. I also enjoy gardening in my free time."
+    },
+    {
+      "role": "assistant",
+      "content": "Gardening is a great hobby. What do you like to grow?"
+    },
+    {
+      "role": "user",
+      "content": "What is my cat's name?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is my cat's name?",
+      "expected_answer": "luna",
+      "relevant_texts": [
+        "her name is luna"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_EASY_7_005",
+  "scenario": "simple",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "My favorite type of music is classical."
+    },
+    {
+      "role": "assistant",
+      "content": "Classical music is beautiful. Do you have a favorite composer?"
+    },
+    {
+      "role": "user",
+      "content": "I enjoy many, but I mostly listen to instrumental pieces."
+    },
+    {
+      "role": "assistant",
+      "content": "Instrumental classical music can be very relaxing."
+    },
+    {
+      "role": "user",
+      "content": "What is my favorite type of music?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is my favorite type of music?",
+      "expected_answer": "classical",
+      "relevant_texts": [
+        "my favorite type of music is classical"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_MODERATE_7_000",
+  "scenario": "simple",
   "difficulty": "moderate",
   "noise_tags": [
-    "typos",
-    "coreference",
+    "chit-chat",
+    "coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, just so you know, my dog's name is Buster. He's a golden retriever."
+    },
+    {
+      "role": "assistant",
+      "content": "That's a lovely name for a golden retriever! They're such friendly dogs."
+    },
+    {
+      "role": "user",
+      "content": "Yeah, he's great. We just got back from a really muddy walk, so now he needs a bath."
+    },
+    {
+      "role": "assistant",
+      "content": "Oh no, a muddy bath situation! Good luck with that. At least he'll be clean afterwards."
+    },
+    {
+      "role": "user",
+      "content": "Thanks! What was the name of my dog again?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what was the name of my dog again?",
+      "expected_answer": "buster",
+      "relevant_texts": [
+        "my dog's name is buster"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_MODERATE_7_001",
+  "scenario": "simple",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "typo",
+    "chit-chat",
+    "coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Just got a new puppy, he's a golden retriever, super fluffly. We decided to name him Buster."
+    },
+    {
+      "role": "assistant",
+      "content": "A new puppy, how exciting! Golden retrievers are such a great breed. How old is Buster now?"
+    },
+    {
+      "role": "user",
+      "content": "He's about eight weeks, a real little furball. Still trying to get used to his new home."
+    },
+    {
+      "role": "assistant",
+      "content": "Aw, bless him! They grow up so fast. Any training going on yet?"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, we're working on basic commands. It's a lot of work but also a lot of fun."
+    },
+    {
+      "role": "assistant",
+      "content": "That's the spirit! It'll pay off. Anything else I can help with today?"
+    },
+    {
+      "role": "user",
+      "content": "What was the name of my new dog?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what was the name of my new dog?",
+      "expected_answer": "buster",
+      "relevant_texts": [
+        "we decided to name him buster"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_MODERATE_7_002",
+  "scenario": "simple",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "chit-chat",
+    "coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hi! I was just thinking about my home office setup. My favorite color for decor is actually a deep forest green. It's so soothing."
+    },
+    {
+      "role": "assistant",
+      "content": "That's a lovely choice! Forest green does bring a sense of calm to a space. Are you planning any redecorating soon?"
+    },
+    {
+      "role": "user",
+      "content": "Maybe just some small touches. A new plant pot or a throw blanket. Nothing major, you know?"
+    },
+    {
+      "role": "assistant",
+      "content": "Sounds like fun. Even small changes can make a big difference. I hope you find some nice pieces."
+    },
+    {
+      "role": "user",
+      "content": "Hey, just out of curiosity, what did I say my favourite color was?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what did i say my favourite color was?",
+      "expected_answer": "deep forest green",
+      "relevant_texts": [
+        "my favorite color for decor is actually a deep forest green"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_MODERATE_7_003",
+  "scenario": "simple",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "chit-chat",
+    "minor coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there, just wanted to chat for a bit. My dog's name is Buster, he's a golden retriever."
+    },
+    {
+      "role": "assistant",
+      "content": "Nice to meet you! Buster sounds like a lovely dog. Golden retrievers are wonderful companions."
+    },
+    {
+      "role": "user",
+      "content": "They really are. We just got back from the park. What do you think about AI advancements?"
+    },
+    {
+      "role": "assistant",
+      "content": "AI is certainly a fascinating and rapidly evolving field. There's a lot of discussion around its ethical implications."
+    },
+    {
+      "role": "user",
+      "content": "Yeah, that's true. Anyway, what was the name of my dog again?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what was the name of my dog again?",
+      "expected_answer": "buster",
+      "relevant_texts": [
+        "my dog's name is buster"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_MODERATE_7_004",
+  "scenario": "simple",
+  "difficulty": "moderate",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "hi, just wanted to let you know, my cat's name is mittens. she's a fluffy maine coon."
+    },
+    {
+      "role": "assistant",
+      "content": "Mittens, what a lovely name for a cat! Maine Coons are beautiful and known for being quite affectionate."
+    },
+    {
+      "role": "user",
+      "content": "yeah she's super friendly. i'm thinking of getting her a new scratching post, any recs?"
+    },
+    {
+      "role": "assistant",
+      "content": "For scratching posts, sisal rope is usually a good material as it's durable and cats love it. Look for one that's tall enough for her to stretch fully."
+    },
+    {
+      "role": "user",
+      "content": "what is the name of my cat"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is the name of my cat",
+      "expected_answer": "mittens",
+      "relevant_texts": [
+        "my cat's name is mittens"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_MODERATE_7_005",
+  "scenario": "simple",
+  "difficulty": "moderate",
+  "noise_tags": [
     "chit-chat"
   ],
   "turns": [
     {
       "role": "user",
-      "content": "Hi, I was wondering, do you know Elara Vance? She's the lead for the Research & Development team."
+      "content": "Hey, just so you know, my dog's name is Buster. He's a golden retriever."
     },
     {
       "role": "assistant",
-      "content": "I don't have personal knowledge, but I can process information about Elara Vance, the R&D lead."
+      "content": "That's a great name for a golden retriever! Is there anything else I can help you with today?"
     },
     {
       "role": "user",
-      "content": "Ok, good. And that team, the R&D one she heads, it's part of StellarForge Innovations."
+      "content": "Nope, just browsing. Oh, I was wondering, do you guys have any pet grooming tips? Buster gets so messy sometimes."
     },
     {
       "role": "assistant",
-      "content": "So, Elara Vance leads an R&D team within StellarForge Innovations. Understood."
+      "content": "We do! We have articles on grooming golden retrievers. Are you looking for advice on bathing or brushing?"
     },
     {
       "role": "user",
-      "content": "Exactly. I hear they're doing some really groundbreaking stuff there. What kind of projects are they into, do you know?"
-    },
-    {
-      "role": "assistant",
-      "content": "I don't have details on their specific projects, but StellarForge Innovations is known for its advanced technological research."
-    },
-    {
-      "role": "user",
-      "content": "Right, right. And just for my records, where is StellarForge Innovations actually headquartered? Like, which city?"
-    },
-    {
-      "role": "assistant",
-      "content": "StellarForge Innovations is headquartered in Nova Terra."
-    },
-    {
-      "role": "user",
-      "content": "Cool, Nova Terra, got it. Hey, one quick thing, my cat just knocked over a plant, so pardon the interuption."
-    },
-    {
-      "role": "assistant",
-      "content": "No worries at all. Is there anything else I can assist you with regarding StellarForge or Elara?"
-    },
-    {
-      "role": "user",
-      "content": "Yes, actually. Can you tell me what city Elara Vance's employer is located in?"
+      "content": "Just general tips for now. By the way, what is my dog's name?"
     }
   ],
   "eval": [
     {
-      "question": "Can you tell me what city Elara Vance's employer is located in?",
-      "expected_answer": "nova terra",
+      "question": "what is my dog's name?",
+      "expected_answer": "buster",
       "relevant_texts": [
-        "elara vance? she's the lead for the research & development team.",
-        "that team, the r&d one she heads, it's part of stellarforge innovations.",
-        "stellarforge innovations is headquartered in nova terra."
-      ],
-      "subject_hint": "elara vance"
+        "my dog's name is buster"
+      ]
     }
   ]
 }
 {
-  "conversation_id": "MULTIHOP_COMPLEX_42_000",
-  "scenario": "multihop",
+  "conversation_id": "SIMPLE_COMPLEX_7_000",
+  "scenario": "simple",
   "difficulty": "complex",
   "noise_tags": [
     "emoji",
     "multilingual",
-    "coreference",
-    "cross_session",
-    "chatter"
+    "multi-topic chatter",
+    "coreference"
   ],
   "turns": [
     {
       "role": "user",
-      "content": "Hey there, I was just thinking about my old colleague, Liam Chen. He's quite a brilliant data scientist, you know? 🤓"
+      "content": "Hey there! 👋 I'm trying to figure out dinner plans. Btw, my absolute favorite type of coffee is a cold brew with oat milk. Super refreshing! ☕"
     },
     {
       "role": "assistant",
-      "content": "Oh, that's interesting! Data science is a fascinating field. Is he still with the same company?"
+      "content": "Sounds delicious! Planning dinner can be tricky sometimes. Are you looking for something quick or more elaborate tonight?"
     },
     {
       "role": "user",
-      "content": "Nah, he moved. He's at Quantum Innovations now. They're doing some really cutting-edge stuff with AI and machine learning. Pretty cool! 👍"
+      "content": "Definitely quick. Maybe just some pasta. 🍝 C'est la vie! Have you heard anything about the new app update for my phone? It's been acting weird. 📱"
     },
     {
       "role": "assistant",
-      "content": "Quantum Innovations, got it. Sounds like an exciting place to work."
+      "content": "I haven't heard specifics about that app update, but sometimes a quick restart can help. Pasta is a great quick option!"
     },
     {
       "role": "user",
-      "content": "Yeah, I guess so. He's always super busy. Do you know if they have a big presence in the US? I forgot."
+      "content": "Yeah, tried that. No luck. Anyway, my cat Mittens 😼 just knocked over a plant. So much for productivity today. 😂 Qué día!"
     },
     {
       "role": "assistant",
-      "content": "I don't have that detail on hand, but I can tell you more about Quantum Innovations if you'd like."
+      "content": "Oh no, Mittens sounds like a handful! Hopefully, the plant isn't too damaged. What kind of plant was it?"
     },
     {
       "role": "user",
-      "content": "Not now, maybe later. I was trying to remember where their main office is. I know it's in Europe somewhere, but the city escapes me. 😅"
+      "content": "Just a small succulent, nothing serious. I'm thinking about reorganizing my desk next week. It's a mess. 😩 Maybe I'll add some new decor. Feng shui, you know?"
     },
     {
       "role": "assistant",
-      "content": "No worries, take your time. Europe is a big place!"
+      "content": "Feng shui can make a big difference! Good luck with the reorganization. Are you thinking of getting specific new decor items?"
     },
     {
       "role": "user",
-      "content": "Ah! It's Stockholm. Definitely Stockholm. Jag älskar Sverige! 🇸🇪 Such a beautiful place."
-    },
-    {
-      "role": "assistant",
-      "content": "Stockholm, excellent! I've heard wonderful things about it."
-    },
-    {
-      "role": "user",
-      "content": "It truly is! Anyway, completely unrelated, did you catch that new space documentary on Netflix? Blew my mind! 🚀"
-    },
-    {
-      "role": "assistant",
-      "content": "Not yet, but I'll add it to my watch list! Sounds intriguing."
-    },
-    {
-      "role": "user",
-      "content": "You totally should. Ok, I'm heading out for a quick coffee break. Back in a bit! 👋"
-    },
-    {
-      "role": "assistant",
-      "content": "Enjoy your coffee! See you soon."
-    },
-    {
-      "role": "user",
-      "content": "(end of session)\n(new session)\nHi again! 👋 So glad to be back. The coffee was excellent."
-    },
-    {
-      "role": "assistant",
-      "content": "Welcome back! Glad to hear you enjoyed it."
-    },
-    {
-      "role": "user",
-      "content": "Just circling back to our earlier chat. About Liam Chen, the data scientist."
-    },
-    {
-      "role": "assistant",
-      "content": "Yes, what about him?"
-    },
-    {
-      "role": "user",
-      "content": "Given what we discussed, what city is Liam Chen's employer based in? 🤔"
-    },
-    {
-      "role": "assistant",
-      "content": "Liam Chen's employer, Quantum Innovations, is based in Stockholm."
+      "content": "Not yet, still brainstorming ideas. 💡 But speaking of refreshing things, what kind of coffee did i say i like?"
     }
   ],
   "eval": [
     {
-      "question": "Given what we discussed, what city is Liam Chen's employer based in? 🤔",
-      "expected_answer": "stockholm",
+      "question": "what kind of coffee did i say i like?",
+      "expected_answer": "cold brew with oat milk",
       "relevant_texts": [
-        "he's at quantum innovations now.",
-        "it's stockholm. definitely stockholm."
-      ],
-      "subject_hint": "liam chen"
+        "my absolute favorite type of coffee is a cold brew with oat milk"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_COMPLEX_7_001",
+  "scenario": "simple",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emojis",
+    "multitopic",
+    "long_gap",
+    "multilingual"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there! 👋 Just had a super long day at work. So tired. Anyway, my new puppy, a golden retriever, is adorable! His name is Lucky. We just got him last week!"
+    },
+    {
+      "role": "assistant",
+      "content": "Aw, a golden retriever puppy named Lucky sounds absolutely delightful! They bring so much joy. Hope your day gets better with puppy cuddles! 😊"
+    },
+    {
+      "role": "user",
+      "content": "Thanks! Yeah, he's a handful but so worth it. Speaking of pets, how are things on your end? Got any fun plans for the weekend? Thinking of taking Lucky to the park."
+    },
+    {
+      "role": "assistant",
+      "content": "That sounds like a wonderful plan! I'm doing well, just planning some quiet time. Enjoy the park with Lucky!"
+    },
+    {
+      "role": "user",
+      "content": "Sounds good! Enjoy your chill weekend. Oh, by the way, I was watching a documentary about ancient history earlier. Fascinating stuff, learning about civilizations from so long ago. Wie geht's? 🇩🇪"
+    },
+    {
+      "role": "assistant",
+      "content": "Es geht mir gut, danke! Ancient history is indeed captivating. Did anything specific catch your interest?"
+    },
+    {
+      "role": "user",
+      "content": "Not really, just the sheer scale of time involved. It's mind-boggling. Anyway, gotta run! Talk later!"
+    },
+    {
+      "role": "assistant",
+      "content": "You too! Have a good one."
+    },
+    {
+      "role": "user",
+      "content": "Hey, quick question about Lucky what did i say my dog's name was"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what did i say my dog's name was",
+      "expected_answer": "lucky",
+      "relevant_texts": [
+        "his name is lucky"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_COMPLEX_7_002",
+  "scenario": "simple",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multi-topic",
+    "emoji",
+    "multilingual_snippets",
+    "long_gap"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there! Just wanted to share something cool. I actually have two chinchillas at home! 🐹 They are super fluffy and mischievous."
+    },
+    {
+      "role": "assistant",
+      "content": "Oh, that's wonderful! Chinchillas are adorable. What are their names?"
+    },
+    {
+      "role": "user",
+      "content": "Their names are Pip and Squeak. 😊 So, I was thinking about dinner plans. Do you have any suggestions for a good Italian restaurant nearby? I'm craving pasta."
+    },
+    {
+      "role": "assistant",
+      "content": "Pip and Squeak, what cute names! For Italian, I'd recommend 'Bella Roma' on Main Street. Their lasagna is excellent. Que tengas una buena comida!"
+    },
+    {
+      "role": "user",
+      "content": "Thanks, I'll check that out! Sounds delicious. I also need to pick up some new yarn for my knitting project this weekend. Any idea where I can find good quality merino wool? 🧶"
+    },
+    {
+      "role": "assistant",
+      "content": "For merino wool, 'The Yarn Nook' downtown usually has a great selection. They often have sales too. Enjoy your knitting! 😃"
+    },
+    {
+      "role": "user",
+      "content": "Perfect, I'll head there after work tomorrow. This reminds me, I saw a documentary about ancient civilizations today. Fascinating stuff, especially the Egyptian pyramids. Did you know they aligned with the stars?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, the precision of ancient Egyptian architecture is truly remarkable, especially their astronomical alignments. It's astounding what they accomplished without modern tools."
+    },
+    {
+      "role": "user",
+      "content": "Indeed. By the way, I completely forgot to ask, what kind of animals do i keep as pets?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what kind of animals do i keep as pets?",
+      "expected_answer": "two chinchillas",
+      "relevant_texts": [
+        "i actually have two chinchillas at home"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_COMPLEX_7_003",
+  "scenario": "simple",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emoji",
+    "multilingual snippet",
+    "multi-topic chatter"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hi! 👋 Just got back from my morning run, feeling great! By the way, my absolute favorite coffee to kickstart the day is always a double espresso. So energizing! What's up with your day?"
+    },
+    {
+      "role": "assistant",
+      "content": "Sounds like a fantastic start to the day! Glad you're feeling good after your run. My day is going well, thanks for asking! I'm assisting users like yourself."
+    },
+    {
+      "role": "user",
+      "content": "Hola! 😊 You know how it is, right? Sometimes I really crave a strong brew. What do you think about AI in art? It's getting wild out there."
+    },
+    {
+      "role": "assistant",
+      "content": "Indeed, AI's role in art is rapidly evolving and quite fascinating. It's sparking a lot of discussion about creativity and authorship. Do you dabble in any art forms yourself?"
+    },
+    {
+      "role": "user",
+      "content": "Not really, just appreciate it. Speaking of creativity, I'm having a bit of a brain fog today trying to plan dinner. Any quick and healthy ideas for a weeknight? 😩 Something with chicken maybe?"
+    },
+    {
+      "role": "assistant",
+      "content": "Of course! For a quick and healthy chicken dinner, you could try a lemon-herb baked chicken with roasted vegetables like asparagus and bell peppers. Or perhaps a simple chicken stir-fry with plenty of fresh greens and a light soy ginger sauce?"
+    },
+    {
+      "role": "user",
+      "content": "Hmm, stir-fry sounds good, I have some broccoli. How long does a typical chicken stir-fry take to cook from start to finish if everything is prepped? Gotta make sure I don't run late for my evening class."
+    },
+    {
+      "role": "assistant",
+      "content": "A chicken stir-fry, once all ingredients are prepped, usually cooks very quickly. You're looking at about 10-15 minutes of actual cooking time in the wok or pan. Super fast for your class!"
+    },
+    {
+      "role": "user",
+      "content": "Perfect, thanks! 👍 So, what's my favorite coffee type again?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "perfect, thanks! 👍 so, what's my favorite coffee type again?",
+      "expected_answer": "double espresso",
+      "relevant_texts": [
+        "my absolute favorite coffee to kickstart the day is always a double espresso"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_COMPLEX_7_004",
+  "scenario": "simple",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multi-topic chatter",
+    "emojis",
+    "long gaps"
+  ],
+  "turns": [
+    {
+      "role": "assistant",
+      "content": "Aww, classic cat move! Hope you can still get some rest despite the keyboard takeover. Any exciting plans for the evening?"
+    },
+    {
+      "role": "user",
+      "content": "Not really, just some chilling. Speaking of pets, my neighbor's dog is super loud, barks all night. 🤯 Anyway, I was looking at flights for my summer vacation. Thinking about Bali or maybe Portugal."
+    },
+    {
+      "role": "assistant",
+      "content": "Oh, that's rough about the dog! Bali and Portugal sound amazing! What kind of trip are you hoping for – relaxing beach time or more adventurous exploration?"
+    },
+    {
+      "role": "user",
+      "content": "Definitely relaxing beach! 🏖️ I need a break. My internet's been acting up all day too, really annoying. Had to restart the router like five times. Ugh."
+    },
+    {
+      "role": "assistant",
+      "content": "Ugh, tech troubles are the worst when you're trying to unwind. Hopefully, it sorts itself out. Planning a vacation is a great way to escape those daily frustrations!"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, I know! Just need to get away. Remember earlier when I mentioned my cat? She's actually been trying to climb the curtains again. Little rascal! 😼"
+    },
+    {
+      "role": "assistant",
+      "content": "Haha, cats and curtains, a timeless struggle! Sounds like Whiskers is quite the character. Is she usually so adventurous?"
+    },
+    {
+      "role": "user",
+      "content": "what is the name of my cat?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is the name of my cat?",
+      "expected_answer": "whiskers",
+      "relevant_texts": [
+        "my cat, whiskers, is already asleep on my keyboard",
+        "sounds like whiskers is quite the character"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "SIMPLE_COMPLEX_7_005",
+  "scenario": "simple",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multi-topic chatter",
+    "emojis",
+    "multilingual snippets"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey! 👋 Just got back from band practice. It was intense! I'm really trying to master the upright bass, you know? It's such a beautiful instrument. Also, thinking about what to have for dinner 🤔."
+    },
+    {
+      "role": "assistant",
+      "content": "That sounds like a great practice session! The upright bass is indeed a very cool instrument. Any ideas for dinner yet?"
+    },
+    {
+      "role": "user",
+      "content": "Not yet, still debating. Maybe just some pasta. Anyway, have you heard about that new art exhibition downtown? My friend was raving about it earlier today. 🎨"
+    },
+    {
+      "role": "assistant",
+      "content": "Oh, I haven't heard about it! What kind of art is featured? Pasta sounds good though, can't go wrong with that."
+    },
+    {
+      "role": "user",
+      "content": "It's mostly abstract expressionism, which isn't usually my thing, but she said it was surprisingly good. I'm more of a classical art fan myself. Wie geht es dir heute?"
+    },
+    {
+      "role": "assistant",
+      "content": "Abstract expressionism can be quite striking. It's good to hear you're exploring different styles! Mir geht es gut, danke. And you?"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, always good to broaden horizons. Just chilling tonight, planning to watch a documentary. Do you have any recommendations for historical documentaries? Something about ancient civilizations would be neat. 🤓"
+    },
+    {
+      "role": "assistant",
+      "content": "Historical documentaries are fascinating! 'Ancient Apocalypse' or 'Lost Civilizations' are popular choices if you're into that. Have you watched either of those?"
+    },
+    {
+      "role": "user",
+      "content": "Which instrument am I focusing on mastering right now?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "which instrument am i focusing on mastering right now?",
+      "expected_answer": "upright bass",
+      "relevant_texts": [
+        "i'm really trying to master the upright bass",
+        "it's such a beautiful instrument"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_EASY_7_000",
+  "scenario": "update",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "The project deadline is next Friday."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. I've noted that."
+    },
+    {
+      "role": "user",
+      "content": "Correction, the deadline has been moved to this Wednesday."
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks for the update."
+    },
+    {
+      "role": "user",
+      "content": "When is the project deadline?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "when is the project deadline?",
+      "expected_answer": "this wednesday",
+      "relevant_texts": [
+        "the deadline has been moved to this wednesday"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_EASY_7_001",
+  "scenario": "update",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "My favorite color is green."
+    },
+    {
+      "role": "assistant",
+      "content": "Green is a nice choice."
+    },
+    {
+      "role": "user",
+      "content": "Actually, I changed my mind. My favorite color is now purple."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. Purple it is."
+    },
+    {
+      "role": "user",
+      "content": "what is my favorite color?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is my favorite color?",
+      "expected_answer": "purple",
+      "relevant_texts": [
+        "my favorite color is now purple"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_EASY_7_002",
+  "scenario": "update",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "The meeting is scheduled for 2 pm tomorrow."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. 2 pm for the meeting."
+    },
+    {
+      "role": "user",
+      "content": "Actually, scratch that. It's been moved to 3:30 pm."
+    },
+    {
+      "role": "assistant",
+      "content": "Okay, 3:30 pm it is."
+    },
+    {
+      "role": "user",
+      "content": "What time is the meeting?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what time is the meeting?",
+      "expected_answer": "3:30 pm",
+      "relevant_texts": [
+        "it's been moved to 3:30 pm",
+        "okay, 3:30 pm it is"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_EASY_7_003",
+  "scenario": "update",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "My desk is made of wood."
+    },
+    {
+      "role": "assistant",
+      "content": "Wood is a classic material. Is it a light or dark wood?"
+    },
+    {
+      "role": "user",
+      "content": "It's actually not wood anymore. I replaced it with a glass desk last week."
+    },
+    {
+      "role": "assistant",
+      "content": "A glass desk sounds very modern."
+    },
+    {
+      "role": "user",
+      "content": "What material is my desk?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what material is my desk?",
+      "expected_answer": "glass",
+      "relevant_texts": [
+        "i replaced it with a glass desk last week"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_EASY_7_004",
+  "scenario": "update",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "The project deadline is Friday."
+    },
+    {
+      "role": "assistant",
+      "content": "Okay, Friday. I'll make a note of that."
+    },
+    {
+      "role": "user",
+      "content": "Correction, the deadline has been moved to next Monday."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. The new deadline is next Monday."
+    },
+    {
+      "role": "user",
+      "content": "When is the project deadline?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "when is the project deadline?",
+      "expected_answer": "next monday",
+      "relevant_texts": [
+        "the deadline has been moved to next monday"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_EASY_7_005",
+  "scenario": "update",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "The team meeting is scheduled for 10 am."
+    },
+    {
+      "role": "assistant",
+      "content": "Okay, 10 am noted."
+    },
+    {
+      "role": "user",
+      "content": "Actually, we've moved the meeting to 2 pm."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. The new time is 2 pm."
+    },
+    {
+      "role": "user",
+      "content": "what is the current meeting time?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is the current meeting time?",
+      "expected_answer": "2 pm",
+      "relevant_texts": [
+        "we've moved the meeting to 2 pm"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_MODERATE_7_000",
+  "scenario": "update",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "chit-chat"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there, just wanted to let you know my favorite color is like, blue. Yeah, definitely blue right now."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. Blue is noted as your current favorite color."
+    },
+    {
+      "role": "user",
+      "content": "Uhm, actually, scratch that. I've had a change of heart, or maybe just a brain fog moment. My true favorite color has always been, and still is, a deep green. My apologies for the earlier misstatement."
+    },
+    {
+      "role": "assistant",
+      "content": "No worries at all! Thanks for the clarification. So, green is your true favorite color."
+    },
+    {
+      "role": "user",
+      "content": "What is your current favorite color?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is your current favorite color?",
+      "expected_answer": "deep green",
+      "relevant_texts": [
+        "my true favorite color has always been, and still is, a deep green"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_MODERATE_7_001",
+  "scenario": "update",
+  "difficulty": "moderate",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hi, I just wanted to confirm the project alpha start date. I think it's set for June 1st, 2024."
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks for checking! I'll verify that for you."
+    },
+    {
+      "role": "user",
+      "content": "Hold on, my mistake. Just got an email saying the kickoff for project alpha has been pushed back. It's actually June 15th now. Sorry for the confusion."
+    },
+    {
+      "role": "assistant",
+      "content": "No problem at all, thanks for the update. I'll make sure that's noted."
+    },
+    {
+      "role": "user",
+      "content": "So, what's the latest start date for project alpha?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "so, what's the latest start date for project alpha?",
+      "expected_answer": "june 15th",
+      "relevant_texts": [
+        "it's actually june 15th now"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_MODERATE_7_002",
+  "scenario": "update",
+  "difficulty": "moderate",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "assistant",
+      "content": "That's what was originally communicated, yes. Is there a change?"
+    },
+    {
+      "role": "user",
+      "content": "Actually, there's been a slight adjustment. My manager just told me it's been pushed to next Monday instead. So, not friday."
+    },
+    {
+      "role": "assistant",
+      "content": "Ah, good to know. Thanks for the heads-up. I'll update the calendar."
+    },
+    {
+      "role": "user",
+      "content": "Can you confirm the new marketing project deadline?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "can you confirm the new marketing project deadline?",
+      "expected_answer": "next monday",
+      "relevant_texts": [
+        "it's been pushed to next monday instead"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_MODERATE_7_003",
+  "scenario": "update",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "chit-chat",
+    "minor coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, just confirming, the deadline for the Q3 report is next friday, right?"
+    },
+    {
+      "role": "assistant",
+      "content": "That was the original plan, yes. Is there a change you're thinking of?"
+    },
+    {
+      "role": "user",
+      "content": "Actually, my mistake. I just got an email, it's been pushed up. It's now due next tuesday."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. So the new deadline for the Q3 report is next Tuesday. Thanks for the clarification."
+    },
+    {
+      "role": "user",
+      "content": "No prob. So, when is the final deadline for the Q3 report?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "when is the final deadline for the q3 report?",
+      "expected_answer": "next tuesday",
+      "relevant_texts": [
+        "it's now due next tuesday",
+        "the new deadline for the q3 report is next tuesday"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_MODERATE_7_004",
+  "scenario": "update",
+  "difficulty": "moderate",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, just a heads-up, the final report for the Alpha project is due on the 15th of next month."
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks for the heads-up! I'll mark that down in the calendar."
+    },
+    {
+      "role": "user",
+      "content": "Whoops, tiny correction on that Alpha project due date. It's actually been pushed back a bit, so it's now the 22nd, not the 15th. My bad!"
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. I've updated the deadline for the Alpha project to the 22nd. Anything else I can help with?"
+    },
+    {
+      "role": "user",
+      "content": "What's the current due date for the alpha project report?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what's the current due date for the alpha project report?",
+      "expected_answer": "the 22nd",
+      "relevant_texts": [
+        "it's now the 22nd",
+        "not the 15th"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_MODERATE_7_005",
+  "scenario": "update",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "informal language",
+    "typo",
+    "acknowledgement"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, just to confirm, the project deadline is set for next friday, right?"
+    },
+    {
+      "role": "assistant",
+      "content": "That was the initial date, yes. Has there been a change?"
+    },
+    {
+      "role": "user",
+      "content": "Oh, yeah. My bad. We just had a huddle and they moved it up. It's actually tuesday now."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. So the new project deadline is Tuesday."
+    },
+    {
+      "role": "user",
+      "content": "Yep. so when is the project deadline?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "when is the project deadline?",
+      "expected_answer": "tuesday",
+      "relevant_texts": [
+        "it's actually tuesday now",
+        "so the new project deadline is tuesday"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_COMPLEX_7_000",
+  "scenario": "update",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multi-topic chatter",
+    "emojis",
+    "multilingual snippets",
+    "long gap"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, just letting you know, my favorite color is actually blue. 💙 I always liked ocean vibes."
+    },
+    {
+      "role": "assistant",
+      "content": "Got it, your favorite color is blue. That's a classic choice!"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, totally. By the way, remember that project deadline? Is it still Friday? I think I saw something about it shifting. 🗓️"
+    },
+    {
+      "role": "assistant",
+      "content": "The project deadline remains Friday. There haven't been any official changes to that schedule."
+    },
+    {
+      "role": "user",
+      "content": "Ah, good to know. Thanks! 👍 Habt ihr eigentlich schon das neue Café um die Ecke probiert? It's really good for coffee and a quick bite. ☕"
+    },
+    {
+      "role": "assistant",
+      "content": "I appreciate the recommendation! I don't have the ability to try new cafes, but it sounds lovely."
+    },
+    {
+      "role": "user",
+      "content": "Oh, almost forgot! About that favorite color thing... I was thinking, actually, I've really been into green lately. Like, forest green or emerald. So, yeah, my favorite color is now green. It feels more calming."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. Your current favorite color is green."
+    },
+    {
+      "role": "user",
+      "content": "What is your favorite color now?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is your favorite color now?",
+      "expected_answer": "green",
+      "relevant_texts": [
+        "my favorite color is now green",
+        "your current favorite color is green"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_COMPLEX_7_001",
+  "scenario": "update",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emojis",
+    "multilingual",
+    "off-topic chatter",
+    "complex coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, just an FYI, the first draft for the quarterly report is due next Friday, March 15th."
+    },
+    {
+      "role": "assistant",
+      "content": "Got it. Thanks for the heads-up! How's the data collection coming along for that?"
+    },
+    {
+      "role": "user",
+      "content": "Pretty good! Still wrestling with some of the Q4 numbers, but we'll get there. Oh, btw, just got an email – the report deadline actually got pushed back a week. So it's March 22nd now. 🥳 ¡Qué alivio!"
+    },
+    {
+      "role": "assistant",
+      "content": "That's great news! More time for those tricky Q4 figures. And congrats on the progress."
+    },
+    {
+      "role": "user",
+      "content": "Thanks! 🙏 Trying my best. What do you think about adding a section on market trends? Or would that be overkill? 🤔"
+    },
+    {
+      "role": "assistant",
+      "content": "Hmm, it might depend on the overall length. We could do a concise summary. Speaking of deadlines, remember that internal presentation is still Tuesday, right?"
+    },
+    {
+      "role": "user",
+      "content": "Yep, still Tuesday. That one's firm. Just happy about the report one. Anyway, planning my weekend now. Maybe some hiking ⛰️ or just chillaxing."
+    },
+    {
+      "role": "assistant",
+      "content": "Sounds like a plan! Enjoy your weekend."
+    },
+    {
+      "role": "user",
+      "content": "You too! Hey, just double-checking, what's the final due date for the quarterly report draft?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what's the final due date for the quarterly report draft?",
+      "expected_answer": "march 22nd",
+      "relevant_texts": [
+        "the report deadline actually got pushed back a week",
+        "so it's march 22nd now"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_COMPLEX_7_002",
+  "scenario": "update",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emojis",
+    "multilingual-snippets",
+    "multi-topic-chatter"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, just got my new car details confirmed! 🥳 I told the dealer I wanted it in blue. So excited! What's new with you?"
+    },
+    {
+      "role": "assistant",
+      "content": "That's fantastic news! Blue cars always look sharp. Not much new here, just crunching some numbers. Is it a sedan or an SUV?"
+    },
+    {
+      "role": "user",
+      "content": "It's a compact SUV. Thinking of adding some cool accessories later. Wie geht es dir? 😊 Planning a trip next month."
+    },
+    {
+      "role": "assistant",
+      "content": "Sounds practical! Cool accessories are always fun. Mir geht es gut, danke! Where are you planning to travel?"
+    },
+    {
+      "role": "user",
+      "content": "Okay, minor change of plans for the car 😅. The blue shade wasn't quite right when I saw it in person. I actually ended up picking a sleek silver instead. Much better! 👍"
+    },
+    {
+      "role": "assistant",
+      "content": "Silver is a classic choice, very elegant. Good call to see it in person first! So, about that trip?"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, definitely. Planning to visit Italy! 🇮🇹 Got my flight booked for late May. Can't wait! Thinking about pizza 🍕 already."
+    },
+    {
+      "role": "assistant",
+      "content": "Italy sounds amazing! May is a beautiful time to go. Enjoy all the pizza!"
+    },
+    {
+      "role": "user",
+      "content": "Hey, just to confirm, what color did I choose for my new car?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what color did i choose for my new car?",
+      "expected_answer": "silver",
+      "relevant_texts": [
+        "i actually ended up picking a sleek silver instead"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_COMPLEX_7_003",
+  "scenario": "update",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emojis",
+    "multi-topic chatter",
+    "multilingual snippet"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, just to confirm, the deadline for the Q3 report is this Friday, right?"
+    },
+    {
+      "role": "assistant",
+      "content": "That's correct. Please ensure all data is compiled and submitted by end of day Friday."
+    },
+    {
+      "role": "user",
+      "content": "Got it, thanks! 👍 Also, any word on the new marketing campaign? I heard a rumor about an early launch. 🚀"
+    },
+    {
+      "role": "assistant",
+      "content": "The marketing campaign launch is still TBD, but I'll update you as soon as I have concrete information. Regarding the Q3 report, there's been a slight change. The new submission deadline is now actually next Friday, June 16th, not this Friday. Apologies for the late notice!"
+    },
+    {
+      "role": "user",
+      "content": "Oh, okay, good to know! That gives us a bit more breathing room. 😅 Je suis très occupé these days. Thanks for the heads up! So glad we got that extra time."
+    },
+    {
+      "role": "assistant",
+      "content": "You're welcome! Let me know if you need any assistance with the report or anything else. Just a heads up, the June 16th deadline is firm."
+    },
+    {
+      "role": "user",
+      "content": "Will do! 😊 By the way, my car broke down this morning, it was such a hassle getting to work. Ugh. Anyway, I hope that marketing campaign gets off the ground soon, it's vital for our growth strategy. 📈"
+    },
+    {
+      "role": "assistant",
+      "content": "Oh no, I hope your car gets fixed quickly! I'll definitely let you know about the marketing campaign as soon as there's an update. We are all keen for its success."
+    },
+    {
+      "role": "user",
+      "content": "Thanks! What is the current Q3 report deadline?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is the current q3 report deadline?",
+      "expected_answer": "june 16th",
+      "relevant_texts": [
+        "the new submission deadline is now actually next friday, june 16th, not this friday",
+        "the june 16th deadline is firm"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_COMPLEX_7_004",
+  "scenario": "update",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multi-topic chatter",
+    "emojis",
+    "multilingual snippets",
+    "coreference",
+    "long gap"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Planning my book club meeting. I think the community center library room is perfect. It's usually available until 9 PM."
+    },
+    {
+      "role": "assistant",
+      "content": "Sounds like a great spot! Do you need to reserve it in advance?"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, I already did for next Tuesday. Oh, btw, I just checked their updated hours. They actually close at 8:30 PM now, not 9. 😅 It's a new policy apparently."
+    },
+    {
+      "role": "assistant",
+      "content": "Good to know! That's quite a change. Will that affect your meeting plans?"
+    },
+    {
+      "role": "user",
+      "content": "Not really, we usually wrap up by 8 PM anyway. Just wanted to make sure. Also, anyone know a good pizza place nearby? 🍕"
+    },
+    {
+      "role": "assistant",
+      "content": "Domino's is always an option, or there's that local spot, \"Slice of Heaven.\" Their garlic knots are amazing. ¡Buen provecho!"
+    },
+    {
+      "role": "user",
+      "content": "Hmm, Slice of Heaven sounds good. Gracias! Thanks!"
+    },
+    {
+      "role": "user",
+      "content": "Just double-checking what is the current closing time for the community center library room?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is the current closing time for the community center library room?",
+      "expected_answer": "8:30 pm",
+      "relevant_texts": [
+        "they actually close at 8:30 pm now"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "UPDATE_COMPLEX_7_005",
+  "scenario": "update",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multitopic chatter",
+    "emojis",
+    "multilingual snippets",
+    "coreference",
+    "long gaps between fact & question"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, I'm trying to finalize my calendar for the week. The Project A report, wasn't its submission deadline originally set for Friday?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, that's correct. The initial deadline for the Project A report was indeed this Friday."
+    },
+    {
+      "role": "user",
+      "content": "Cool, just double-checking! 👍 By the way, I saw an email about the new office layout, is that happening soon? It mentioned some changes near my desk. 😟"
+    },
+    {
+      "role": "assistant",
+      "content": "The office layout changes are still in planning; no firm dates yet. However, there's been an update regarding the Project A report deadline. Due to a system upgrade, it's now officially extended to next Tuesday."
+    },
+    {
+      "role": "user",
+      "content": "Ah, good to know about both! 🙏 Thanks for the clarification. C'est la vie, I guess, more time for the report. 😅"
+    },
+    {
+      "role": "assistant",
+      "content": "You're welcome! Is there anything else you need to confirm today, perhaps about another project or meeting?"
+    },
+    {
+      "role": "user",
+      "content": "Not really, just making sure I got all my ducks in a row for tomorrow. Is the morning stand-up still at 9 AM?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, the daily stand-up meeting is still confirmed for 9 AM tomorrow."
+    },
+    {
+      "role": "user",
+      "content": "Perfect. 🙏 What is the project a report deadline?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is the project a report deadline?",
+      "expected_answer": "next tuesday",
+      "relevant_texts": [
+        "it's now officially extended to next tuesday"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_EASY_7_000",
+  "scenario": "multihop",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "The capital city of France is Paris."
+    },
+    {
+      "role": "assistant",
+      "content": "That's correct. Paris serves as the capital of France."
+    },
+    {
+      "role": "user",
+      "content": "Paris is also home to the famous Eiffel Tower."
+    },
+    {
+      "role": "assistant",
+      "content": "Indeed, the Eiffel Tower is a prominent landmark in Paris."
+    },
+    {
+      "role": "user",
+      "content": "What is the capital of the country known for the Eiffel Tower?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is the capital of the country known for the eiffel tower?",
+      "expected_answer": "paris",
+      "relevant_texts": [
+        "the capital city of france is paris",
+        "paris is also home to the famous eiffel tower"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_EASY_7_001",
+  "scenario": "multihop",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Koalas primarily eat eucalyptus leaves."
+    },
+    {
+      "role": "assistant",
+      "content": "That's correct. Eucalyptus is their main food source."
+    },
+    {
+      "role": "user",
+      "content": "And koalas are native to Australia."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, they are found in eastern and southern Australia."
+    },
+    {
+      "role": "user",
+      "content": "What do koalas eat in australia?"
+    },
+    {
+      "role": "assistant",
+      "content": "Koalas eat eucalyptus leaves in Australia."
+    }
+  ],
+  "eval": [
+    {
+      "question": "what do koalas eat in australia?",
+      "expected_answer": "eucalyptus leaves",
+      "relevant_texts": [
+        "koalas primarily eat eucalyptus leaves",
+        "koalas are native to australia"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_EASY_7_002",
+  "scenario": "multihop",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "The largest moon of Saturn is Titan."
+    },
+    {
+      "role": "assistant",
+      "content": "That's correct. Titan is a fascinating moon."
+    },
+    {
+      "role": "user",
+      "content": "What is the atmosphere of Titan mostly made of?"
+    },
+    {
+      "role": "assistant",
+      "content": "Its atmosphere is primarily nitrogen."
+    },
+    {
+      "role": "user",
+      "content": "What gas is the atmosphere of Saturn's largest moon made of?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what gas is the atmosphere of saturn's largest moon made of?",
+      "expected_answer": "nitrogen",
+      "relevant_texts": [
+        "the largest moon of saturn is titan",
+        "its atmosphere is primarily nitrogen"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_EASY_7_003",
+  "scenario": "multihop",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "What is the largest land animal?"
+    },
+    {
+      "role": "assistant",
+      "content": "The largest land animal is the African elephant."
+    },
+    {
+      "role": "user",
+      "content": "Where does the African elephant primarily live?"
+    },
+    {
+      "role": "assistant",
+      "content": "African elephants primarily live in sub-saharan Africa."
+    },
+    {
+      "role": "user",
+      "content": "What is the primary habitat of the largest land animal?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is the primary habitat of the largest land animal?",
+      "expected_answer": "sub-saharan africa",
+      "relevant_texts": [
+        "the largest land animal is the african elephant",
+        "african elephants primarily live in sub-saharan africa"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_EASY_7_004",
+  "scenario": "multihop",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Tell me about the largest mammal on Earth."
+    },
+    {
+      "role": "assistant",
+      "content": "The largest mammal is the blue whale."
+    },
+    {
+      "role": "user",
+      "content": "And where does the blue whale typically live?"
+    },
+    {
+      "role": "assistant",
+      "content": "Blue whales live in all the world's oceans."
+    },
+    {
+      "role": "user",
+      "content": "where does the largest mammal on earth live?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "where does the largest mammal on earth live?",
+      "expected_answer": "in all the world's oceans",
+      "relevant_texts": [
+        "the largest mammal is the blue whale",
+        "blue whales live in all the world's oceans"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_EASY_7_005",
+  "scenario": "multihop",
+  "difficulty": "easy",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "The new project manager is named Sarah."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood."
+    },
+    {
+      "role": "user",
+      "content": "Sarah's favorite color is blue."
+    },
+    {
+      "role": "assistant",
+      "content": "Okay."
+    },
+    {
+      "role": "user",
+      "content": "What is the project manager's favorite color?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what is the project manager's favorite color?",
+      "expected_answer": "blue",
+      "relevant_texts": [
+        "the new project manager is named sarah",
+        "sarah's favorite color is blue"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_MODERATE_7_000",
+  "scenario": "multihop",
+  "difficulty": "moderate",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, I was reading about birds. Did you know that the kakapo is a flightless parrot from new zealand?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, that's right! The kakapo is quite unique, being the world's only flightless parrot. They are also nocturnal."
+    },
+    {
+      "role": "user",
+      "content": "That's cool. And about their diet, I recall they primarily munch on seeds and fruits, especially from certain native trees."
+    },
+    {
+      "role": "assistant",
+      "content": "Indeed. Their diet is quite varied, but they particularly favor fruits and seeds from native New Zealand plants like the rimu tree."
+    },
+    {
+      "role": "user",
+      "content": "So, what kind of food do flightless parrots in new zealand mostly eat?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "so, what kind of food do flightless parrots in new zealand mostly eat?",
+      "expected_answer": "seeds and fruits from native plants",
+      "relevant_texts": [
+        "the kakapo is a flightless parrot from new zealand",
+        "they primarily munch on seeds and fruits, especially from certain native trees",
+        "fruits and seeds from native new zealand plants like the rimu tree"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_MODERATE_7_001",
+  "scenario": "multihop",
+  "difficulty": "moderate",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, I was wondering about the person heading up the new green energy initiative."
+    },
+    {
+      "role": "assistant",
+      "content": "That would be Dr. Lena Petrova, the chief sustainability officer."
+    },
+    {
+      "role": "user",
+      "content": "Ah, Dr. Petrova. What's the main focus of her work right now?"
+    },
+    {
+      "role": "assistant",
+      "content": "She's primarily focused on optimizing urban solar grid efficiency."
+    },
+    {
+      "role": "user",
+      "content": "And what specific technology is her team exploring for that?"
+    },
+    {
+      "role": "assistant",
+      "content": "They are researching perovskite solar cells for improved energy capture."
+    },
+    {
+      "role": "user",
+      "content": "What type of solar cells are they researching?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what type of solar cells are they researching?",
+      "expected_answer": "perovskite solar cells",
+      "relevant_texts": [
+        "they are researching perovskite solar cells for improved energy capture",
+        "she's primarily focused on optimizing urban solar grid efficiency",
+        "dr. lena petrova, the chief sustainability officer"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_MODERATE_7_002",
+  "scenario": "multihop",
+  "difficulty": "moderate",
+  "noise_tags": [],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, I was wondering, what does a botanist usually study?"
+    },
+    {
+      "role": "assistant",
+      "content": "A botanist typically studies plants and plant life, including their structure, growth, and classification."
+    },
+    {
+      "role": "user",
+      "content": "Okay, cool. And what's a common tool they might use for collecting samples?"
+    },
+    {
+      "role": "assistant",
+      "content": "For collecting plant samples, a botanist often uses a plant press or sometimes a hand trowel."
+    },
+    {
+      "role": "user",
+      "content": "What tool does a botanist use for collecting plant samples?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what tool does a botanist use for collecting plant samples?",
+      "expected_answer": "plant press or hand trowel",
+      "relevant_texts": [
+        "for collecting plant samples",
+        "a botanist often uses a plant press or sometimes a hand trowel"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_MODERATE_7_003",
+  "scenario": "multihop",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "chit-chat",
+    "coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "hi there, i'm curious about the company 'cloudnet solutions'. what kind of services do they offer?"
+    },
+    {
+      "role": "assistant",
+      "content": "CloudNet Solutions provides cloud computing infrastructure and data management services. They focus on secure data storage and scalable server solutions."
+    },
+    {
+      "role": "user",
+      "content": "that sounds interesting. do they specialize in any particular industry or type of client?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, they primarily serve the healthcare and financial sectors, offering tailored compliance solutions for those regulated environments."
+    },
+    {
+      "role": "user",
+      "content": "okay, and what's the main benefit of using cloudnet solutions?"
+    },
+    {
+      "role": "assistant",
+      "content": "The main benefit of CloudNet Solutions is their robust security framework and compliance expertise, ensuring data integrity and regulatory adherence for their clients."
+    },
+    {
+      "role": "user",
+      "content": "which sectors benefit from cloudnet solutions' data management?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "which sectors benefit from cloudnet solutions' data management?",
+      "expected_answer": "healthcare; financial",
+      "relevant_texts": [
+        "cloudnet solutions provides cloud computing infrastructure and data management services",
+        "they primarily serve the healthcare and financial sectors"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_MODERATE_7_004",
+  "scenario": "multihop",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "multihop",
+    "chit-chat",
+    "coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, I was reading about a company called 'GreenTech Innovations'. What do they make?"
+    },
+    {
+      "role": "assistant",
+      "content": "GreenTech Innovations specializes in eco-friendly building materials, primarily a new type of insulation."
+    },
+    {
+      "role": "user",
+      "content": "Oh, interesting. And what's the primary material used in that insulation? I hear it's pretty innovative."
+    },
+    {
+      "role": "assistant",
+      "content": "Their proprietary insulation, often called 'BioShield', is primarily made from recycled denim fibers. It's quite sustainable."
+    },
+    {
+      "role": "user",
+      "content": "So, what's the main material in the insulation produced by GreenTech Innovations?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "so, what's the main material in the insulation produced by greentech innovations?",
+      "expected_answer": "recycled denim fibers",
+      "relevant_texts": [
+        "greentech innovations specializes in eco-friendly building materials, primarily a new type of insulation",
+        "their proprietary insulation, often called 'bioshield', is primarily made from recycled denim fibers"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_MODERATE_7_005",
+  "scenario": "multihop",
+  "difficulty": "moderate",
+  "noise_tags": [
+    "chit-chat",
+    "minor coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there! I'm trying to remember something about ancient Egypt. What was the main river flowing through it?"
+    },
+    {
+      "role": "assistant",
+      "content": "The Nile River was the primary waterway in ancient Egypt."
+    },
+    {
+      "role": "user",
+      "content": "Right, the Nile. And what was the name of the most famous pharaoh who built those massive pyramids?"
+    },
+    {
+      "role": "assistant",
+      "content": "You're probably thinking of Khufu. He commissioned the Great Pyramid of Giza."
+    },
+    {
+      "role": "user",
+      "content": "Okay, so who built the big pyramid near the main river in ancient Egypt?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "who built the big pyramid near the main river in ancient egypt?",
+      "expected_answer": "khufu",
+      "relevant_texts": [
+        "the nile river was the primary waterway in ancient egypt",
+        "khufu. he commissioned the great pyramid of giza"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_COMPLEX_7_000",
+  "scenario": "multihop",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multi-topic chatter",
+    "emojis",
+    "multilingual snippets",
+    "long gaps",
+    "coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey, just finished reading this article. Apparently, Dr. Evelyn Reed is a lead researcher at the Starfleet Medical Research Institute. Fascinating stuff!"
+    },
+    {
+      "role": "assistant",
+      "content": "That sounds interesting! The Starfleet Medical Research Institute is quite renowned for its groundbreaking work."
+    },
+    {
+      "role": "user",
+      "content": "Yeah! Btw, thinking of getting some boba later 🧋. Do you know a good spot? Or maybe I'll just stay in and watch some K-drama. 😅"
+    },
+    {
+      "role": "assistant",
+      "content": "Boba sounds great! I don't have personal recommendations for spots right now, but a good K-drama binge is always a solid choice."
+    },
+    {
+      "role": "user",
+      "content": "Anyway, back to the science. I also read they're heavily involved in developing a new vaccine for the Rigelian Fever at that institute. It's a critical project, sounds like."
+    },
+    {
+      "role": "assistant",
+      "content": "Indeed, the Rigelian Fever vaccine project is a top priority for global medical research efforts."
+    },
+    {
+      "role": "user",
+      "content": "Jajaja, that reminds me of this hilarious scene in the K-drama. 😂 Tengo hambre ahora. What was I talking about again? Oh right, space stuff."
+    },
+    {
+      "role": "assistant",
+      "content": "You were mentioning the Rigelian Fever vaccine project. Is there anything else you'd like to know about it?"
+    },
+    {
+      "role": "user",
+      "content": "Which disease is the new vaccine for that dr evelyn reed's institute is developing?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "which disease is the new vaccine for that dr evelyn reed's institute is developing?",
+      "expected_answer": "rigelian fever",
+      "relevant_texts": [
+        "dr. evelyn reed is a lead researcher at the starfleet medical research institute",
+        "developing a new vaccine for the rigelian fever at that institute"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_COMPLEX_7_001",
+  "scenario": "multihop",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multi-topic chatter",
+    "emojis",
+    "coreference",
+    "long gap"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there! 👋 What's up? Been reading about weird animals today."
+    },
+    {
+      "role": "assistant",
+      "content": "Not much, just chilling. Weird animals, huh? Like what?"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, like the kakapo. It's a truly unique bird, did you know it's a flightless parrot? So strange."
+    },
+    {
+      "role": "assistant",
+      "content": "A flightless parrot? That's wild! Never heard of one of those before. 🦜"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, and they're only found in New Zealand, I think. Super rare."
+    },
+    {
+      "role": "assistant",
+      "content": "New Zealand, eh? Cool! 🇳🇿 So many unique species there. I remember learning about kiwis too."
+    },
+    {
+      "role": "user",
+      "content": "Absolutely! The biodiversity is amazing. BTW, I need to order some pizza for dinner. 🍕 What's your favorite topping?"
+    },
+    {
+      "role": "assistant",
+      "content": "Hmm, tough choice! Maybe pepperoni and mushrooms. 🍄 Anyway, back to the kakapo, anything else interesting about them?"
+    },
+    {
+      "role": "user",
+      "content": "Not really. Just trying to remember where you'd typically find a flightless parrot?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "not really. just trying to remember where you'd typically find a flightless parrot?",
+      "expected_answer": "new zealand",
+      "relevant_texts": [
+        "it's a flightless parrot",
+        "they're only found in new zealand"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_COMPLEX_7_002",
+  "scenario": "multihop",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emoji",
+    "multitopic_chatter",
+    "informal_language",
+    "long_gap_between_fact_and_question"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there! 👋 I was just reading about ancient civilizations. So fascinating!"
+    },
+    {
+      "role": "assistant",
+      "content": "Indeed! What caught your interest today? The pyramids? Roman legions?"
+    },
+    {
+      "role": "user",
+      "content": "Funnily enough, I was looking at ancient naval technology. Did you know the trireme was a really important ancient greek warship? 🚢🇬🇷"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, the trireme was a pivotal vessel for naval power in the ancient Mediterranean. Its design was quite revolutionary."
+    },
+    {
+      "role": "user",
+      "content": "Yeah, totally! And get this, their speed was legendary, mostly because they had three banks of oars on each side. Like, imagine the coordination needed! 🤯"
+    },
+    {
+      "role": "assistant",
+      "content": "That's right. The three tiers of oars allowed for incredible propulsion and maneuverability, making them formidable in battle."
+    },
+    {
+      "role": "user",
+      "content": "Haha, I can't even row a single oar properly! 😂 Anyway, thinking about ancient battles, do you know if anyone ever tried to build a submarine back then? Just curious."
+    },
+    {
+      "role": "assistant",
+      "content": "That's an interesting thought! While there's no clear evidence of functional submarines in ancient times, the concept of underwater travel has a long history in mythology and early ideas."
+    },
+    {
+      "role": "user",
+      "content": "What was the main reason for the trireme's great speed?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "what was the main reason for the trireme's great speed?",
+      "expected_answer": "three banks of oars",
+      "relevant_texts": [
+        "the trireme was a really important ancient greek warship",
+        "their speed was legendary, mostly because they had three banks of oars on each side",
+        "the three tiers of oars allowed for incredible propulsion and maneuverability"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_COMPLEX_7_003",
+  "scenario": "multihop",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multi-topic chatter",
+    "emojis",
+    "multilingual snippets"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there! 🐦 I was reading about a cool bird. Do you know what Eurasian nuthatches mostly eat? It said something about nuts and seeds. 🤔"
+    },
+    {
+      "role": "assistant",
+      "content": "Hello! Yes, you're right! Eurasian nuthatches primarily feed on nuts and seeds, especially during autumn and winter. They're quite clever at caching them too."
+    },
+    {
+      "role": "user",
+      "content": "Cool! 😎 My cat Fluffy just knocked over a plant... 🤦‍♀️ Anyway, do those nuthatches make their nests in trees?"
+    },
+    {
+      "role": "assistant",
+      "content": "They do! They typically nest in tree holes, often old woodpecker holes. Fun fact: they have a unique way of modifying their nest entrances."
+    },
+    {
+      "role": "user",
+      "content": "Oh, really? How so? 🧐 Is it with leaves or something?"
+    },
+    {
+      "role": "assistant",
+      "content": "Not leaves! They actually use mud to narrow the entrance hole of their nests. It helps protect their eggs and chicks from predators. C'est incroyable!"
+    },
+    {
+      "role": "user",
+      "content": "Wow, mud! That's so smart. I wonder if Fluffy would like to play with mud. Lol. 😹 Is there a specific reason they do that?"
+    },
+    {
+      "role": "assistant",
+      "content": "It's mainly for defense, to make the entrance just wide enough for them to fit, but too small for larger predators. A very effective natural barrier."
+    },
+    {
+      "role": "user",
+      "content": "Hmm, okay. So, like, how do they narrow their nest openings?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "how do they narrow their nest openings?",
+      "expected_answer": "mud",
+      "relevant_texts": [
+        "eurasian nuthatches primarily feed on nuts and seeds",
+        "they actually use mud to narrow the entrance hole of their nests"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_COMPLEX_7_004",
+  "scenario": "multihop",
+  "difficulty": "complex",
+  "noise_tags": [
+    "emojis",
+    "multilingual",
+    "chatter",
+    "coreference"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "gm! 🌞 Remember my friend, Alice? She's a pretty talented software engineer. She's actually the lead of one of the dev teams at TechCorp. It's wild how much they're growing."
+    },
+    {
+      "role": "assistant",
+      "content": "Good morning! Ah, Alice! The one who was talking about her new coding setup? I totally forgot her exact role. What's her team up to these days? Any cool projects?"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, that's her! So, her team recently adopted a new open-source framework. It's called 'Phoenix Core' and they're using it for their new high-security messaging application. C'est très intéressant, non?"
+    },
+    {
+      "role": "assistant",
+      "content": "Phoenix Core, eh? Sounds like something out of a sci-fi movie! 🌌 Is that the same team that was struggling with legacy systems last year? Or is this a new initiative altogether?"
+    },
+    {
+      "role": "user",
+      "content": "Haha, kinda! No, this is a fresh start. And btw, her team also got tasked with a major overhaul. They're going to completely rebuild the company's internal knowledge base system from scratch. It's a massive undertaking. 🤯"
+    },
+    {
+      "role": "assistant",
+      "content": "Wow, rebuilding from scratch is no small feat! That sounds like a lot of work. How many people are on her team now? I hope they have enough resources for all that!"
+    },
+    {
+      "role": "user",
+      "content": "I think it's about eight engineers now. A pretty lean team for such big projects. But they're brilliant. Her team also handles the maintenance of the company's main customer relationship management (CRM) database. So much on their plate! ¡Qué loco!"
+    },
+    {
+      "role": "assistant",
+      "content": "CRM database maintenance too? That's a critical system for any business."
+    },
+    {
+      "role": "user",
+      "content": "So, which key system is Alice's team currently responsible for maintaining?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "which key system is alice's team currently responsible for maintaining?",
+      "expected_answer": "customer relationship management database",
+      "relevant_texts": [
+        "her team also handles the maintenance of the company's main customer relationship management (crm) database",
+        "alice? she's a pretty talented software engineer. she's actually the lead of one of the dev teams at techcorp"
+      ]
+    }
+  ]
+}
+{
+  "conversation_id": "MULTIHOP_COMPLEX_7_005",
+  "scenario": "multihop",
+  "difficulty": "complex",
+  "noise_tags": [
+    "multi-topic chatter",
+    "emojis",
+    "multilingual snippets",
+    "long gaps"
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hey there! Just reading up on some interesting environmental news. 🌳 Did you know that the annual 'Green Horizons' environmental summit is hosted by the Eco-Sustainability Institute? Pretty cool, huh?"
+    },
+    {
+      "role": "assistant",
+      "content": "That's good to know! The Eco-Sustainability Institute does great work. Is there anything specific you'd like to know about the summit?"
+    },
+    {
+      "role": "user",
+      "content": "Ah, not really about the summit itself right now. But speaking of the summit, this year, the keynote speaker will be Dr. Aris Thorne. That's exciting! ¿Qué tal?"
+    },
+    {
+      "role": "assistant",
+      "content": "Dr. Aris Thorne is a highly respected figure. It sounds like they have an impressive lineup this year. And I'm doing well, thank you for asking!"
+    },
+    {
+      "role": "user",
+      "content": "Yeah, definitely. Anyway, changed topic completely, I just saw the funniest cat video. 😹 It was chasing a laser pointer for like five minutes straight, then fell asleep. So cute! You ever watch animal videos?"
+    },
+    {
+      "role": "assistant",
+      "content": "I don't 'watch' videos in the human sense, but I can access information about them! Sounds like a classic cat video. Is there anything else you wanted to discuss about the environmental summit or Dr. Thorne?"
+    },
+    {
+      "role": "user",
+      "content": "Nah, not really. Just chilling. My friend's coming over later, we're gonna play some board games. 🎲 Any recommendations for a good cooperative game? I'm thinking something strategic but not too complex. Danke!"
+    },
+    {
+      "role": "assistant",
+      "content": "For cooperative board games, 'Pandemic' or 'Forbidden Island' are always great choices if you like strategic challenges. They're very popular. And you're welcome!"
+    },
+    {
+      "role": "user",
+      "content": "Okay, thanks for the suggestions! One last thing though, back to what we were talking about earlier. Who is the keynote speaker at the Green Horizons summit this year?"
+    }
+  ],
+  "eval": [
+    {
+      "question": "who is the keynote speaker at the green horizons summit this year?",
+      "expected_answer": "dr aris thorne",
+      "relevant_texts": [
+        "the annual 'green horizons' environmental summit is hosted by the eco-sustainability institute",
+        "this year, the summit's keynote speaker will be dr. aris thorne"
+      ]
     }
   ]
 }
