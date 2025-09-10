@@ -85,7 +85,7 @@ def stream_conversation(mem: GraphMemory, convo: Dict[str, Any]) -> None:
         res = mem.retrieve(conv_id, q, top_k=5)
         print_results(q, res["results"])
 
-    html_path = render_conv_graph_pyvis(mem, conv_id, out_dir="viz")
+    html_path = render_conv_graph_pyvis(mem, conv_id, out_dir="graph_visualization")
     if html_path:
         print(f"\n   → Graph saved: {html_path}")
 
